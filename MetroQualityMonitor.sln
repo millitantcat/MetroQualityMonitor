@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetroQualityMonitor.Domain", "MetroQualityMonitor.Domain\MetroQualityMonitor.Domain.csproj", "{F35D5158-7E66-46E2-AB40-170294AD5C5F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetroQualityMonitor.Application", "MetroQualityMonitor.Application\MetroQualityMonitor.Application.csproj", "{5714E10B-85EC-497C-B476-0C524A6A080C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetroQualityMonitor.Infrastructure", "MetroQualityMonitor.Infrastructure\MetroQualityMonitor.Infrastructure.csproj", "{8760E370-D14A-4F12-AF20-614CC1DFBA0D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetroQualityMonitor.DbMigrator", "MetroQualityMonitor.DbMigrator\MetroQualityMonitor.DbMigrator.csproj", "{CFBC2A5A-9C8C-4FE1-AD78-C572802D68E7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetroQualityMonitor.Web", "MetroQualityMonitor.Web\MetroQualityMonitor.Web.csproj", "{9FC67EF6-77C7-4A09-BC5B-BE7287818E65}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F35D5158-7E66-46E2-AB40-170294AD5C5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F35D5158-7E66-46E2-AB40-170294AD5C5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F35D5158-7E66-46E2-AB40-170294AD5C5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F35D5158-7E66-46E2-AB40-170294AD5C5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5714E10B-85EC-497C-B476-0C524A6A080C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5714E10B-85EC-497C-B476-0C524A6A080C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5714E10B-85EC-497C-B476-0C524A6A080C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5714E10B-85EC-497C-B476-0C524A6A080C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8760E370-D14A-4F12-AF20-614CC1DFBA0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8760E370-D14A-4F12-AF20-614CC1DFBA0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8760E370-D14A-4F12-AF20-614CC1DFBA0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8760E370-D14A-4F12-AF20-614CC1DFBA0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFBC2A5A-9C8C-4FE1-AD78-C572802D68E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFBC2A5A-9C8C-4FE1-AD78-C572802D68E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFBC2A5A-9C8C-4FE1-AD78-C572802D68E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFBC2A5A-9C8C-4FE1-AD78-C572802D68E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FC67EF6-77C7-4A09-BC5B-BE7287818E65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FC67EF6-77C7-4A09-BC5B-BE7287818E65}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FC67EF6-77C7-4A09-BC5B-BE7287818E65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FC67EF6-77C7-4A09-BC5B-BE7287818E65}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
