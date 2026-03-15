@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace MetroQualityMonitor.Domain.DataImports.Entities;
+namespace MetroQualityMonitor.Domain.DataImports.Enums;
 
 /// <summary>
 /// Статус загрузки и обработки данных.

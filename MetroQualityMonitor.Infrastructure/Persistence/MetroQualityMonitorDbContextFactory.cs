@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 namespace MetroQualityMonitor.Infrastructure.Persistence;
 
 /// <summary>
-/// Фабрика контеста базы данных <see cref="MetroQualityMonitorDbContext"/>.
+/// Фабрика контекста базы данных <see cref="MetroQualityMonitorDbContext"/>.
 /// </summary>
 public class MetroQualityMonitorDbContextFactory : IDesignTimeDbContextFactory<MetroQualityMonitorDbContext>
 {

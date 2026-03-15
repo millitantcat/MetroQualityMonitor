@@ -1,3 +1,5 @@
+using MetroQualityMonitor.Domain.DataImports.Entities;
+using MetroQualityMonitor.Domain.Stations.Entities;
 using MetroQualityMonitor.Domain.Test.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +15,21 @@ public class MetroQualityMonitorDbContext(DbContextOptions<MetroQualityMonitorDb
     /// Тестовая Entity.
     /// </summary>
     public DbSet<TestEntity> TestEntities => Set<TestEntity>();
+    
+    /// <summary>
+    /// Станция.
+    /// </summary>
+    public DbSet<Station> Stations => Set<Station>();
+    
+    /// <summary>
+    /// Линия.
+    /// </summary>
+    public DbSet<Line> Lines => Set<Line>();
+    
+    /// <summary>
+    /// Журнал загрузок исходных наборов данных.
+    /// </summary>
+    public DbSet<DataImportRun> DataImportRuns => Set<DataImportRun>();
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using MetroQualityMonitor.Domain.DataImports.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace MetroQualityMonitor.Domain.DataImports.Entities;

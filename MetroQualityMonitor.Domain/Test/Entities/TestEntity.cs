@@ -13,7 +13,7 @@ public class TestEntity
     [Required]
     [MaxLength(200)]
     [Comment("Наименование тестовой записи")]
-    public string Name { get; set; } = null!;
+    public required string Name { get; set; }
     
     [Comment("Дата и время создания записи в UTC")]
     public DateTime CreateDateTimeUtc { get; set; }
