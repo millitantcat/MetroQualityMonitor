@@ -1,0 +1,293 @@
+{
+  "features": [
+    {
+      "geometry": null,
+      "properties": {
+        "datasetId": 2278,
+        "rowId": null,
+        "attributes": {
+          "Line": "\u0421\u043E\u043A\u043E\u043B\u044C\u043D\u0438\u0447\u0435\u0441\u043A\u0430\u044F \u043B\u0438\u043D\u0438\u044F",
+          "ID": 1,
+          "Status": "\u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442",
+          "global_id": 62921363
+        },
+        "releaseNumber": 10,
+        "versionNumber": 4
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "properties": {
+        "datasetId": 2278,
+        "rowId": null,
+        "attributes": {
+          "Line": "\u0417\u0430\u043C\u043E\u0441\u043A\u0432\u043E\u0440\u0435\u0446\u043A\u0430\u044F \u043B\u0438\u043D\u0438\u044F",
+          "ID": 2,
+          "Status": "\u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442",
+          "global_id": 62921364
+        },
+        "releaseNumber": 10,
+        "versionNumber": 4
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "properties": {
+        "datasetId": 2278,
+        "rowId": null,
+        "attributes": {
+          "Line": "\u0410\u0440\u0431\u0430\u0442\u0441\u043A\u043E-\u041F\u043E\u043A\u0440\u043E\u0432\u0441\u043A\u0430\u044F \u043B\u0438\u043D\u0438\u044F",
+          "ID": 3,
+          "Status": "\u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442",
+          "global_id": 62921365
+        },
+        "releaseNumber": 10,
+        "versionNumber": 4
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "properties": {
+        "datasetId": 2278,
+        "rowId": null,
+        "attributes": {
+          "Line": "\u0424\u0438\u043B\u0451\u0432\u0441\u043A\u0430\u044F \u043B\u0438\u043D\u0438\u044F",
+          "ID": 4,
+          "Status": "\u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442",
+          "global_id": 62921366
+        },
+        "releaseNumber": 10,
+        "versionNumber": 4
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "properties": {
+        "datasetId": 2278,
+        "rowId": null,
+        "attributes": {
+          "Line": "\u041A\u043E\u043B\u044C\u0446\u0435\u0432\u0430\u044F \u043B\u0438\u043D\u0438\u044F",
+          "ID": 5,
+          "Status": "\u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442",
+          "global_id": 62921367
+        },
+        "releaseNumber": 10,
+        "versionNumber": 4
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "properties": {
+        "datasetId": 2278,
+        "rowId": null,
+        "attributes": {
+          "Line": "\u041A\u0430\u043B\u0443\u0436\u0441\u043A\u043E-\u0420\u0438\u0436\u0441\u043A\u0430\u044F \u043B\u0438\u043D\u0438\u044F",
+          "ID": 6,
+          "Status": "\u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442",
+          "global_id": 62921368
+        },
+        "releaseNumber": 10,
+        "versionNumber": 4
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "properties": {
+        "datasetId": 2278,
+        "rowId": null,
+        "attributes": {
+          "Line": "\u0422\u0430\u0433\u0430\u043D\u0441\u043A\u043E-\u041A\u0440\u0430\u0441\u043D\u043E\u043F\u0440\u0435\u0441\u043D\u0435\u043D\u0441\u043A\u0430\u044F \u043B\u0438\u043D\u0438\u044F",
+          "ID": 7,
+          "Status": "\u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442",
+          "global_id": 62921369
+        },
+        "releaseNumber": 10,
+        "versionNumber": 4
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "properties": {
+        "datasetId": 2278,
+        "rowId": null,
+        "attributes": {
+          "Line": "\u041A\u0430\u043B\u0438\u043D\u0438\u043D\u0441\u043A\u0430\u044F \u043B\u0438\u043D\u0438\u044F",
+          "ID": 8,
+          "Status": "\u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442",
+          "global_id": 62921370
+        },
+        "releaseNumber": 10,
+        "versionNumber": 4
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "properties": {
+        "datasetId": 2278,
+        "rowId": null,
+        "attributes": {
+          "Line": "\u0421\u0435\u0440\u043F\u0443\u0445\u043E\u0432\u0441\u043A\u043E-\u0422\u0438\u043C\u0438\u0440\u044F\u0437\u0435\u0432\u0441\u043A\u0430\u044F \u043B\u0438\u043D\u0438\u044F",
+          "ID": 9,
+          "Status": "\u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442",
+          "global_id": 62921371
+        },
+        "releaseNumber": 10,
+        "versionNumber": 4
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "properties": {
+        "datasetId": 2278,
+        "rowId": null,
+        "attributes": {
+          "Line": "\u041B\u044E\u0431\u043B\u0438\u043D\u0441\u043A\u043E-\u0414\u043C\u0438\u0442\u0440\u043E\u0432\u0441\u043A\u0430\u044F \u043B\u0438\u043D\u0438\u044F",
+          "ID": 10,
+          "Status": "\u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442",
+          "global_id": 62921372
+        },
+        "releaseNumber": 10,
+        "versionNumber": 4
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "properties": {
+        "datasetId": 2278,
+        "rowId": null,
+        "attributes": {
+          "Line": "\u0411\u0443\u0442\u043E\u0432\u0441\u043A\u0430\u044F \u043B\u0438\u043D\u0438\u044F",
+          "ID": 12,
+          "Status": "\u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442",
+          "global_id": 62921374
+        },
+        "releaseNumber": 10,
+        "versionNumber": 4
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "properties": {
+        "datasetId": 2278,
+        "rowId": null,
+        "attributes": {
+          "Line": "\u0421\u043E\u043B\u043D\u0446\u0435\u0432\u0441\u043A\u0430\u044F \u043B\u0438\u043D\u0438\u044F",
+          "ID": 14,
+          "Status": "\u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442",
+          "global_id": 62921376
+        },
+        "releaseNumber": 10,
+        "versionNumber": 4
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "properties": {
+        "datasetId": 2278,
+        "rowId": null,
+        "attributes": {
+          "Line": "\u041D\u0435\u043A\u0440\u0430\u0441\u043E\u0432\u0441\u043A\u0430\u044F \u043B\u0438\u043D\u0438\u044F",
+          "ID": 15,
+          "Status": "\u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442",
+          "global_id": 62921377
+        },
+        "releaseNumber": 10,
+        "versionNumber": 4
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "properties": {
+        "datasetId": 2278,
+        "rowId": null,
+        "attributes": {
+          "Line": "\u0411\u043E\u043B\u044C\u0448\u0430\u044F \u043A\u043E\u043B\u044C\u0446\u0435\u0432\u0430\u044F \u043B\u0438\u043D\u0438\u044F",
+          "ID": 16,
+          "Status": "\u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442",
+          "global_id": 62921378
+        },
+        "releaseNumber": 10,
+        "versionNumber": 4
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "properties": {
+        "datasetId": 2278,
+        "rowId": null,
+        "attributes": {
+          "Line": "\u041C\u043E\u0441\u043A\u043E\u0432\u0441\u043A\u043E\u0435 \u0446\u0435\u043D\u0442\u0440\u0430\u043B\u044C\u043D\u043E\u0435 \u043A\u043E\u043B\u044C\u0446\u043E",
+          "ID": 17,
+          "Status": "\u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442",
+          "global_id": 277904734
+        },
+        "releaseNumber": 10,
+        "versionNumber": 4
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "properties": {
+        "datasetId": 2278,
+        "rowId": null,
+        "attributes": {
+          "Line": "\u0422\u0440\u043E\u0438\u0446\u043A\u0430\u044F \u043B\u0438\u043D\u0438\u044F",
+          "ID": 18,
+          "Status": "\u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442",
+          "global_id": 2696943201
+        },
+        "releaseNumber": 10,
+        "versionNumber": 4
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "properties": {
+        "datasetId": 2278,
+        "rowId": null,
+        "attributes": {
+          "Line": "\u0420\u0443\u0431\u043B\u0451\u0432\u043E-\u0410\u0440\u0445\u0430\u043D\u0433\u0435\u043B\u044C\u0441\u043A\u0430\u044F \u043B\u0438\u043D\u0438\u044F",
+          "ID": 19,
+          "Status": "\u0441\u0442\u0440\u043E\u0438\u0442\u0441\u044F",
+          "global_id": 2696943208
+        },
+        "releaseNumber": 10,
+        "versionNumber": 4
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": null,
+      "properties": {
+        "datasetId": 2278,
+        "rowId": null,
+        "attributes": {
+          "Line": "\u0411\u0438\u0440\u044E\u043B\u0451\u0432\u0441\u043A\u0430\u044F \u043B\u0438\u043D\u0438\u044F",
+          "ID": 20,
+          "Status": "\u0441\u0442\u0440\u043E\u0438\u0442\u0441\u044F",
+          "global_id": 2696943209
+        },
+        "releaseNumber": 10,
+        "versionNumber": 4
+      },
+      "type": "Feature"
+    }
+  ],
+  "type": "FeatureCollection"
+}

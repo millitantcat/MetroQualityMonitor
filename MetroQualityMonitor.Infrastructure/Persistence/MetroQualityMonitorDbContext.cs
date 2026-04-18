@@ -1,6 +1,8 @@
 using MetroQualityMonitor.Domain.DataImports.Entities;
+using MetroQualityMonitor.Domain.PassengerFlow.Entities;
 using MetroQualityMonitor.Domain.Stations.Entities;
 using MetroQualityMonitor.Domain.Test.Entities;
+using MetroQualityMonitor.Domain.Vestibules.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace MetroQualityMonitor.Infrastructure.Persistence;
@@ -26,6 +28,21 @@ public class MetroQualityMonitorDbContext(DbContextOptions<MetroQualityMonitorDb
     /// </summary>
     public DbSet<Line> Lines => Set<Line>();
     
+    /// <summary>
+    /// Вестибюли станций метро.
+    /// </summary>
+    public DbSet<Vestibule> Vestibules => Set<Vestibule>();
+
+    /// <summary>
+    /// Сведения о ремонтах эскалаторов.
+    /// </summary>
+    public DbSet<EscalatorRepair> EscalatorRepairs => Set<EscalatorRepair>();
+
+    /// <summary>
+    /// Пассажиропоток по станциям метро.
+    /// </summary>
+    public DbSet<PassengerFlowRecord> PassengerFlowRecords => Set<PassengerFlowRecord>();
+
     /// <summary>
     /// Журнал загрузок исходных наборов данных.
     /// </summary>

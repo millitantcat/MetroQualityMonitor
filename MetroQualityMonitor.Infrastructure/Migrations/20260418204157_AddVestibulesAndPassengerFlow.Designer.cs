@@ -3,6 +3,7 @@ using System;
 using MetroQualityMonitor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MetroQualityMonitor.Infrastructure.Migrations
 {
     [DbContext(typeof(MetroQualityMonitorDbContext))]
-    partial class MetroQualityMonitorDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260418204157_AddVestibulesAndPassengerFlow")]
+    partial class AddVestibulesAndPassengerFlow
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
