@@ -1,0 +1,52 @@
+<mat-sidenav-container class="sidenav-container">
+
+  <mat-sidenav
+    [mode]="isMobile() ? 'over' : 'side'"
+    [opened]="isMobile() ? sidenavOpen : true"
+    class="sidenav"
+    (closedStart)="sidenavOpen = false">
+
+    <div class="sidenav-logo">
+      <mat-icon class="logo-icon">subway</mat-icon>
+      <div class="logo-text">
+        <span class="logo-title">MetroQM</span>
+        <span class="logo-sub">Мониторинг качества</span>
+      </div>
+    </div>
+
+    <div class="nav-group-label">НАВИГАЦИЯ</div>
+    <mat-nav-list>
+      @for (item of navItems; track item.route) {
+        <a mat-list-item
+           [routerLink]="item.route"
+           routerLinkActive="active-link"
+           class="nav-item"
+           (click)="isMobile() && (sidenavOpen = false)">
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          <span matListItemTitle>{{ item.label }}</span>
+        </a>
+      }
+    </mat-nav-list>
+
+    <div class="sidenav-footer">
+      <span>ВКР 2026 · MetroQualityMonitor</span>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="main-content">
+    <!-- Мобильный тулбар -->
+    @if (isMobile()) {
+      <mat-toolbar class="mobile-toolbar">
+        <button mat-icon-button (click)="toggleSidenav()">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <span class="mobile-title">MetroQM</span>
+      </mat-toolbar>
+    }
+
+    <div class="content-scroll">
+      <router-outlet />
+    </div>
+  </mat-sidenav-content>
+
+</mat-sidenav-container>

@@ -37,6 +37,238 @@ namespace MetroQualityMonitor.Infrastructure.Migrations
                     b.ToTable("LineStation");
                 });
 
+            modelBuilder.Entity("MetroQualityMonitor.Domain.Analytics.Entities.Anomaly", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasComment("Идентификатор записи");
+
+                    b.Property<DateTime?>("AcknowledgedDateTimeUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("Дата и время подтверждения аномалии (UTC)");
+
+                    b.Property<int>("ActualValue")
+                        .HasColumnType("integer")
+                        .HasComment("Фактическое значение пассажиропотока");
+
+                    b.Property<short>("AnomalyType")
+                        .HasColumnType("smallint")
+                        .HasComment("Тип аномалии");
+
+                    b.Property<DateTime>("CreateDateTimeUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("Дата и время создания записи (UTC)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasComment("Текстовое описание аномалии");
+
+                    b.Property<int?>("ExpectedValue")
+                        .HasColumnType("integer")
+                        .HasComment("Ожидаемое значение пассажиропотока (расчётное)");
+
+                    b.Property<bool>("IsAcknowledged")
+                        .HasColumnType("boolean")
+                        .HasComment("Признак подтверждения аномалии оператором");
+
+                    b.Property<string>("Quarter")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasComment("Квартал наблюдения аномалии (например, «Q1», «Q2»)");
+
+                    b.Property<double>("Score")
+                        .HasColumnType("double precision")
+                        .HasComment("Числовой показатель аномальности (например, Z-score или IF score)");
+
+                    b.Property<short>("Severity")
+                        .HasColumnType("smallint")
+                        .HasComment("Уровень серьёзности аномалии");
+
+                    b.Property<short>("StationId")
+                        .HasColumnType("smallint")
+                        .HasComment("Идентификатор станции метро");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer")
+                        .HasComment("Год наблюдения аномалии");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreateDateTimeUtc");
+
+                    b.HasIndex("IsAcknowledged");
+
+                    b.HasIndex("Severity");
+
+                    b.HasIndex("StationId", "Year", "Quarter");
+
+                    b.ToTable("Anomalies", t =>
+                        {
+                            t.HasComment("Обнаруженная аномалия пассажиропотока по станции за квартал");
+                        });
+                });
+
+            modelBuilder.Entity("MetroQualityMonitor.Domain.Analytics.Entities.Forecast", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasComment("Идентификатор записи");
+
+                    b.Property<int?>("ConfidenceLowerIncoming")
+                        .HasColumnType("integer")
+                        .HasComment("Нижняя граница доверительного интервала для входящих пассажиров");
+
+                    b.Property<int?>("ConfidenceLowerOutgoing")
+                        .HasColumnType("integer")
+                        .HasComment("Нижняя граница доверительного интервала для исходящих пассажиров");
+
+                    b.Property<int?>("ConfidenceUpperIncoming")
+                        .HasColumnType("integer")
+                        .HasComment("Верхняя граница доверительного интервала для входящих пассажиров");
+
+                    b.Property<int?>("ConfidenceUpperOutgoing")
+                        .HasColumnType("integer")
+                        .HasComment("Верхняя граница доверительного интервала для исходящих пассажиров");
+
+                    b.Property<DateTime>("CreateDateTimeUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("Дата и время создания записи (UTC)");
+
+                    b.Property<short?>("LineId")
+                        .HasColumnType("smallint")
+                        .HasComment("Идентификатор линии метро (заполняется для прогноза на уровне линии)");
+
+                    b.Property<string>("ModelName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasComment("Название модели прогнозирования (например, «SARIMA», «Prophet»)");
+
+                    b.Property<string>("ModelVersion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasComment("Версия модели прогнозирования (например, «v1.0»)");
+
+                    b.Property<int>("PredictedIncoming")
+                        .HasColumnType("integer")
+                        .HasComment("Прогнозируемое количество входящих пассажиров");
+
+                    b.Property<int>("PredictedOutgoing")
+                        .HasColumnType("integer")
+                        .HasComment("Прогнозируемое количество исходящих пассажиров");
+
+                    b.Property<string>("Quarter")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasComment("Квартал прогноза (например, «Q1», «Q2»)");
+
+                    b.Property<short?>("StationId")
+                        .HasColumnType("smallint")
+                        .HasComment("Идентификатор станции метро (заполняется для прогноза на уровне станции)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer")
+                        .HasComment("Год прогноза");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreateDateTimeUtc");
+
+                    b.HasIndex("LineId", "Year", "Quarter");
+
+                    b.HasIndex("StationId", "Year", "Quarter");
+
+                    b.ToTable("Forecasts", t =>
+                        {
+                            t.HasComment("Прогноз пассажиропотока на квартал по линии или станции");
+                        });
+                });
+
+            modelBuilder.Entity("MetroQualityMonitor.Domain.Analytics.Entities.HourlyProfile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasComment("Идентификатор записи");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<short>("DayType")
+                        .HasColumnType("smallint")
+                        .HasComment("Тип дня");
+
+                    b.Property<int>("Hour")
+                        .HasColumnType("integer")
+                        .HasComment("Час суток (0–23)");
+
+                    b.Property<double>("IncomingShare")
+                        .HasColumnType("double precision")
+                        .HasComment("Доля входящих пассажиров для данного часа (сумма по всем часам дня = 1.0)");
+
+                    b.Property<double>("OutgoingShare")
+                        .HasColumnType("double precision")
+                        .HasComment("Доля исходящих пассажиров для данного часа (сумма по всем часам дня = 1.0)");
+
+                    b.Property<short>("StationCategory")
+                        .HasColumnType("smallint")
+                        .HasComment("Категория станции");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StationCategory", "DayType", "Hour")
+                        .IsUnique();
+
+                    b.ToTable("HourlyProfiles", t =>
+                        {
+                            t.HasComment("Справочник эмпирических часовых профилей пассажиропотока по категории станции и типу дня");
+                        });
+                });
+
+            modelBuilder.Entity("MetroQualityMonitor.Domain.Analytics.Entities.StationCluster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasComment("Идентификатор записи");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ClusterId")
+                        .HasColumnType("integer")
+                        .HasComment("Числовой идентификатор кластера");
+
+                    b.Property<string>("ClusterLabel")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasComment("Метка кластера (например, «Residential», «Central»)");
+
+                    b.Property<DateTime>("ComputedAtDateTimeUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("Дата и время вычисления кластеризации (UTC)");
+
+                    b.Property<short>("StationId")
+                        .HasColumnType("smallint")
+                        .HasComment("Идентификатор станции метро");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComputedAtDateTimeUtc");
+
+                    b.HasIndex("StationId");
+
+                    b.ToTable("StationClusters", t =>
+                        {
+                            t.HasComment("Результат кластеризации станции метро по характеру пассажиропотока");
+                        });
+                });
+
             modelBuilder.Entity("MetroQualityMonitor.Domain.DataImports.Entities.DataImportRun", b =>
                 {
                     b.Property<Guid>("Id")
@@ -436,6 +668,43 @@ namespace MetroQualityMonitor.Infrastructure.Migrations
                         .HasForeignKey("StationsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("MetroQualityMonitor.Domain.Analytics.Entities.Anomaly", b =>
+                {
+                    b.HasOne("MetroQualityMonitor.Domain.Stations.Entities.Station", "Station")
+                        .WithMany()
+                        .HasForeignKey("StationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Station");
+                });
+
+            modelBuilder.Entity("MetroQualityMonitor.Domain.Analytics.Entities.Forecast", b =>
+                {
+                    b.HasOne("MetroQualityMonitor.Domain.Stations.Entities.Line", "Line")
+                        .WithMany()
+                        .HasForeignKey("LineId");
+
+                    b.HasOne("MetroQualityMonitor.Domain.Stations.Entities.Station", "Station")
+                        .WithMany()
+                        .HasForeignKey("StationId");
+
+                    b.Navigation("Line");
+
+                    b.Navigation("Station");
+                });
+
+            modelBuilder.Entity("MetroQualityMonitor.Domain.Analytics.Entities.StationCluster", b =>
+                {
+                    b.HasOne("MetroQualityMonitor.Domain.Stations.Entities.Station", "Station")
+                        .WithMany()
+                        .HasForeignKey("StationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Station");
                 });
 
             modelBuilder.Entity("MetroQualityMonitor.Domain.PassengerFlow.Entities.PassengerFlowRecord", b =>

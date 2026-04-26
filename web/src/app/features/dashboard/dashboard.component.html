@@ -1,0 +1,105 @@
+<div class="page">
+  @if (loading) {
+    <div class="loading-shade">
+      <mat-spinner diameter="40"></mat-spinner>
+      <span>Загрузка данных…</span>
+    </div>
+  } @else {
+
+  <h1 class="page-title">Дашборд</h1>
+
+  <!-- KPI cards -->
+  <div class="grid-4 mb24">
+    <app-kpi-card icon="people" iconBg="#e3f2fd" iconColor="#1565c0"
+      [value]="totalPassengersFormatted" label="Пассажиров за квартал"
+      [sub]="kpi?.latestYear + ' ' + kpi?.latestQuarter"/>
+    <app-kpi-card icon="train" iconBg="#e8f5e9" iconColor="#2e7d32"
+      [value]="kpi?.stationCount?.toString() ?? '—'" label="Станций метро"/>
+    <app-kpi-card icon="warning_amber" iconBg="#fff3e0" iconColor="#e65100"
+      [value]="kpi?.activeAnomalyCount?.toString() ?? '—'" label="Активных аномалий"/>
+    <app-kpi-card icon="build" iconBg="#fce4ec" iconColor="#c62828"
+      [value]="kpi?.activeRepairCount?.toString() ?? '—'" label="Ремонтов эскалаторов"/>
+  </div>
+
+  <!-- Row 1: динамика потока + топ-10 станций -->
+  <div class="grid-2 mb24">
+    <div class="card">
+      <div class="chart-title">Динамика пассажиропотока по кварталам</div>
+      <div class="chart-wrap h300"><canvas #flowChart></canvas></div>
+    </div>
+    <div class="card">
+      <div class="chart-title">Топ-10 станций (входящий поток)</div>
+      <div class="chart-wrap h300"><canvas #topChart></canvas></div>
+    </div>
+  </div>
+
+  <!-- Row 2: поток по линиям -->
+  <div class="card mb24">
+    <div class="chart-title">Пассажиропоток по линиям (последний квартал)</div>
+    <div class="chart-wrap h280"><canvas #linesChart></canvas></div>
+  </div>
+
+  <!-- Row 3: доноты аномалий + таблица аномалий -->
+  <div class="grid-anomalies mb24">
+    <!-- Два донута рядом -->
+    <div class="anomaly-charts-col">
+      <div class="card donut-card">
+        <div class="chart-title">Аномалии по серьёзности</div>
+        @if (anomalyStats && anomalyStats.totalActive > 0) {
+          <div class="chart-wrap h200"><canvas #severityChart></canvas></div>
+        } @else {
+          <div class="no-data-msg"><mat-icon>check_circle</mat-icon> Аномалий нет</div>
+        }
+      </div>
+      <div class="card donut-card">
+        <div class="chart-title">Аномалии по типу детектора</div>
+        @if (anomalyStats && anomalyStats.totalActive > 0) {
+          <div class="chart-wrap h200"><canvas #typeChart></canvas></div>
+        } @else {
+          <div class="no-data-msg"><mat-icon>check_circle</mat-icon> Аномалий нет</div>
+        }
+      </div>
+    </div>
+
+    <!-- Список последних аномалий -->
+    <div class="card anomaly-list-card">
+      <div class="section-header">
+        <span class="chart-title">Последние аномалии</span>
+        <a mat-button color="primary" routerLink="/anomalies">
+          Все <mat-icon>arrow_forward</mat-icon>
+        </a>
+      </div>
+      @if (recentAnomalies.length === 0) {
+        <div class="no-data-msg"><mat-icon>check_circle</mat-icon> Аномалии не обнаружены</div>
+      } @else {
+        <table mat-table [dataSource]="recentAnomalies" class="anomaly-table">
+          <ng-container matColumnDef="station">
+            <th mat-header-cell *matHeaderCellDef>Станция</th>
+            <td mat-cell *matCellDef="let a">
+              <a [routerLink]="['/stations', a.stationId]" class="station-link">{{ a.stationName }}</a>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="period">
+            <th mat-header-cell *matHeaderCellDef>Период</th>
+            <td mat-cell *matCellDef="let a">{{ a.year }} {{ a.quarter }}</td>
+          </ng-container>
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef>Тип</th>
+            <td mat-cell *matCellDef="let a">{{ typeLabel(a.anomalyType) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="severity">
+            <th mat-header-cell *matHeaderCellDef>Серьёзность</th>
+            <td mat-cell *matCellDef="let a">
+              <span [class]="severityClass(a.severity)">{{ a.severity }}</span>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="['station','period','type','severity']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['station','period','type','severity']"
+              [routerLink]="['/stations', row.stationId]" class="clickable-row"></tr>
+        </table>
+      }
+    </div>
+  </div>
+
+  }
+</div>

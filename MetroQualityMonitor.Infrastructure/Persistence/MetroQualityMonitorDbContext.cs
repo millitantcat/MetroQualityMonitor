@@ -1,3 +1,4 @@
+using MetroQualityMonitor.Domain.Analytics.Entities;
 using MetroQualityMonitor.Domain.DataImports.Entities;
 using MetroQualityMonitor.Domain.PassengerFlow.Entities;
 using MetroQualityMonitor.Domain.Stations.Entities;
@@ -47,6 +48,26 @@ public class MetroQualityMonitorDbContext(DbContextOptions<MetroQualityMonitorDb
     /// Журнал загрузок исходных наборов данных.
     /// </summary>
     public DbSet<DataImportRun> DataImportRuns => Set<DataImportRun>();
+
+    /// <summary>
+    /// Прогнозы пассажиропотока.
+    /// </summary>
+    public DbSet<Forecast> Forecasts => Set<Forecast>();
+
+    /// <summary>
+    /// Обнаруженные аномалии пассажиропотока.
+    /// </summary>
+    public DbSet<Anomaly> Anomalies => Set<Anomaly>();
+
+    /// <summary>
+    /// Справочник эмпирических часовых профилей пассажиропотока.
+    /// </summary>
+    public DbSet<HourlyProfile> HourlyProfiles => Set<HourlyProfile>();
+
+    /// <summary>
+    /// Результаты кластеризации станций.
+    /// </summary>
+    public DbSet<StationCluster> StationClusters => Set<StationCluster>();
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)

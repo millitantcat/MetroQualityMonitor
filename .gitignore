@@ -290,3 +290,14 @@ __pycache__/
 
 # Local settings with secrets
 appsettings.local.json
+
+# Python
+notepads/.venv/
+ml-service/.venv/
+ml-service/.env
+
+# Angular
+web/node_modules/
+web/dist/
+web/.angular/
+

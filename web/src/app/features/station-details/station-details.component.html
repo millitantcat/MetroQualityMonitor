@@ -1,0 +1,154 @@
+<div class="page">
+  @if (loading) {
+    <div class="loading-shade">
+      <mat-spinner diameter="40"></mat-spinner>
+      <span>Загрузка данных…</span>
+    </div>
+  } @else if (station) {
+
+  <!-- Header -->
+  <div class="station-header">
+    <a mat-icon-button routerLink="/map" class="back-btn">
+      <mat-icon>arrow_back</mat-icon>
+    </a>
+    <div class="header-body">
+      <h1 class="station-name">{{ station.name }}</h1>
+      <div class="station-meta">
+        @for (line of station.lines; track line) {
+          <span class="line-chip">{{ line }}</span>
+        }
+        @if (station.category) {
+          <span class="cat-chip">{{ categoryLabel(station.category) }}</span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI -->
+  <div class="grid-4" style="margin-bottom:24px">
+    <app-kpi-card icon="people" iconBg="#e3f2fd" iconColor="#1565c0"
+      [value]="formatNum(station.latestIncoming ?? 0)"
+      label="Входящих (посл. квартал)">
+    </app-kpi-card>
+    <app-kpi-card icon="people_outline" iconBg="#e8f5e9" iconColor="#2e7d32"
+      [value]="formatNum(station.latestOutgoing ?? 0)"
+      label="Исходящих (посл. квартал)">
+    </app-kpi-card>
+    <app-kpi-card icon="trending_up" iconBg="#fff3e0" iconColor="#e65100"
+      [value]="yoyLabel"
+      label="Рост год-к-году">
+    </app-kpi-card>
+    <app-kpi-card icon="door_front" iconBg="#f3e5f5" iconColor="#6a1b9a"
+      [value]="station.vestibuleCount.toString()"
+      label="Вестибюлей">
+    </app-kpi-card>
+  </div>
+
+  <!-- Flow chart -->
+  <div class="card" style="margin-bottom:24px">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">Пассажиропоток по кварталам</div>
+        <div class="chart-sub">Реальные данные · прогноз SARIMA · доверительный интервал · аномалии</div>
+      </div>
+    </div>
+    <div class="chart-wrap-tall">
+      <canvas #flowCanvas></canvas>
+    </div>
+  </div>
+
+  <!-- Heatmap -->
+  <div class="card" style="margin-bottom:24px">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">Часовой профиль</div>
+        <div class="chart-sub">Расчётные данные на основе модели деагрегации · категория: {{ categoryLabel(station.category) }}</div>
+      </div>
+      <mat-button-toggle-group [(ngModel)]="dayType" (change)="onDayTypeChange()" class="day-toggle">
+        @for (dt of dayTypes; track dt.value) {
+          <mat-button-toggle [value]="dt.value">{{ dt.label }}</mat-button-toggle>
+        }
+      </mat-button-toggle-group>
+    </div>
+
+    @if (hourlyLoading) {
+      <div class="loading-shade" style="min-height:120px">
+        <mat-spinner diameter="32"></mat-spinner>
+      </div>
+    } @else if (hourly) {
+      <div class="heatmap">
+        <div class="heatmap-labels-col">
+          <div class="heatmap-col-header"></div>
+          @for (h of heatHours; track h) {
+            <div class="hour-label">{{ h }}:00</div>
+          }
+        </div>
+        <div class="heatmap-grid">
+          <div class="heatmap-col">
+            <div class="heatmap-col-header">Входящие</div>
+            @for (h of heatHours; track h) {
+              @let slot = getSlot(h);
+              <div class="heat-cell"
+                   [style.background]="heatColor(slot?.incomingShare ?? 0, maxInShare)"
+                   [title]="'Час ' + h + ':00 — доля ' + ((slot?.incomingShare ?? 0) * 100 | number:'1.1-1') + '%'">
+              </div>
+            }
+          </div>
+          <div class="heatmap-col">
+            <div class="heatmap-col-header">Исходящие</div>
+            @for (h of heatHours; track h) {
+              @let slot = getSlot(h);
+              <div class="heat-cell"
+                   [style.background]="heatColor(slot?.outgoingShare ?? 0, maxOutShare)"
+                   [title]="'Час ' + h + ':00 — доля ' + ((slot?.outgoingShare ?? 0) * 100 | number:'1.1-1') + '%'">
+              </div>
+            }
+          </div>
+        </div>
+        <div class="heatmap-legend">
+          <div class="legend-gradient"></div>
+          <div class="legend-ticks">
+            <span>Низкий</span><span>Высокий</span>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div style="color:#9e9e9e;padding:16px 0">Часовой профиль недоступен</div>
+    }
+  </div>
+
+  <!-- Anomalies -->
+  @if (anomalies.length > 0) {
+    <div class="card">
+      <div class="chart-title" style="margin-bottom:16px">Аномалии станции</div>
+      <table mat-table [dataSource]="anomalies" class="anomaly-table">
+        <ng-container matColumnDef="period">
+          <th mat-header-cell *matHeaderCellDef>Период</th>
+          <td mat-cell *matCellDef="let a">{{ a.year }} {{ a.quarter }}</td>
+        </ng-container>
+        <ng-container matColumnDef="type">
+          <th mat-header-cell *matHeaderCellDef>Тип</th>
+          <td mat-cell *matCellDef="let a">{{ a.anomalyType }}</td>
+        </ng-container>
+        <ng-container matColumnDef="severity">
+          <th mat-header-cell *matHeaderCellDef>Серьёзность</th>
+          <td mat-cell *matCellDef="let a">
+            <span [class]="severityClass(a.severity)">{{ a.severity }}</span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="score">
+          <th mat-header-cell *matHeaderCellDef>Score</th>
+          <td mat-cell *matCellDef="let a">{{ a.score | number:'1.2-2' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="actual">
+          <th mat-header-cell *matHeaderCellDef>Факт</th>
+          <td mat-cell *matCellDef="let a">{{ formatNum(a.actualValue) }}</td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="['period','type','severity','score','actual']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['period','type','severity','score','actual']"></tr>
+      </table>
+    </div>
+  }
+
+  }
+</div>

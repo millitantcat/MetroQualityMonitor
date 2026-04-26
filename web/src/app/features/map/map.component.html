@@ -1,0 +1,93 @@
+<div class="map-page">
+  <div class="map-sidebar">
+    <h2 class="sidebar-title">Карта станций</h2>
+
+    <mat-button-toggle-group [(ngModel)]="mode" (change)="onModeChange()" class="mode-toggle">
+      <mat-button-toggle value="clusters">Кластеры</mat-button-toggle>
+      <mat-button-toggle value="vestibules">Вестибюли</mat-button-toggle>
+    </mat-button-toggle-group>
+
+    @if (mode === 'clusters') {
+      <!-- Легенда кластеров -->
+      <div class="legend-section">
+        <div class="legend-title">Кластеры станций</div>
+        @for (stat of clusterStats; track stat.label) {
+          <div class="legend-item">
+            <span class="legend-dot" [style.background]="stat.color"></span>
+            <span class="legend-label">{{ stat.label }}</span>
+            <span class="legend-count">{{ stat.count }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Оверлеи проблем -->
+      <div class="legend-section">
+        <div class="legend-title">Оверлеи</div>
+        <div class="overlay-toggle">
+          <mat-slide-toggle [(ngModel)]="showAnomalies" (change)="onFilterChange()" color="warn">
+            <span class="overlay-label">
+              <span class="overlay-dot anomaly-dot"></span>
+              Аномалии
+              @if (totalAnomalies > 0) {
+                <span class="overlay-count">{{ totalAnomalies }}</span>
+              }
+            </span>
+          </mat-slide-toggle>
+        </div>
+        <div class="overlay-toggle">
+          <mat-slide-toggle [(ngModel)]="showRepairs" (change)="onFilterChange()" color="accent">
+            <span class="overlay-label">
+              <span class="overlay-dot repair-dot"></span>
+              Ремонты
+              @if (totalRepairs > 0) {
+                <span class="overlay-count">{{ totalRepairs }}</span>
+              }
+            </span>
+          </mat-slide-toggle>
+        </div>
+      </div>
+
+      <!-- Обозначение размера маркера -->
+      <div class="legend-section">
+        <div class="legend-title">Обозначения</div>
+        <div class="marker-legend">
+          <div class="marker-legend-item">
+            <span class="marker-demo" style="background:#e53935;width:22px;height:22px"></span>
+            <span>Есть аномалии</span>
+          </div>
+          <div class="marker-legend-item">
+            <span class="marker-demo" style="background:#fb8c00;width:18px;height:18px"></span>
+            <span>Есть ремонты</span>
+          </div>
+          <div class="marker-legend-item">
+            <span class="marker-demo" style="background:#757575;width:14px;height:14px"></span>
+            <span>Норма</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hint">
+        <mat-icon>info_outline</mat-icon>
+        Клик по маркеру открывает детали станции
+      </div>
+    } @else {
+      <div class="stats-row">
+        <mat-icon>place</mat-icon>
+        <span>{{ vestibules.length }} вестибюлей</span>
+      </div>
+      <div class="hint">
+        <mat-icon>info_outline</mat-icon>
+        Показаны все вестибюли с известными координатами
+      </div>
+    }
+  </div>
+
+  <div class="map-area">
+    @if (loading) {
+      <div class="loading-shade">
+        <mat-spinner diameter="48"></mat-spinner>
+      </div>
+    }
+    <div #mapEl class="leaflet-map"></div>
+  </div>
+</div>

@@ -1,4 +1,5 @@
-﻿using MetroQualityMonitor.Infrastructure.Persistence;
+﻿using MetroQualityMonitor.Infrastructure.Analytics.Seeders;
+using MetroQualityMonitor.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,3 +29,8 @@ var dbContext = scope.ServiceProvider.GetRequiredService<MetroQualityMonitorDbCo
 Console.WriteLine("Applying migrations...");
 await dbContext.Database.MigrateAsync();
 Console.WriteLine("Migrations applied successfully.");
+
+Console.WriteLine("Seeding hourly profiles...");
+var seeder = new HourlyProfileSeeder(dbContext);
+await seeder.SeedAsync();
+Console.WriteLine("Seeding completed.");
