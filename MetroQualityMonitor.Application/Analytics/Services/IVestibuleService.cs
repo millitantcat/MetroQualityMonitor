@@ -10,5 +10,5 @@ public interface IVestibuleService
     /// <summary>
     /// Возвращает список вестибюлей с координатами, опционально фильтрует по станции.
     /// </summary>
-    Task<IReadOnlyCollection<VestibuleDto>> GetAllAsync(short? stationId, CancellationToken ct = default);
+    Task<IReadOnlyCollection<VestibuleDto>> GetAllAsync(short? stationId, CancellationToken cancellationToken = default);
 }

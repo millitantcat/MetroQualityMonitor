@@ -6,16 +6,15 @@ namespace MetroQualityMonitor.Infrastructure.MlService;
 
 /// <summary>
 /// HTTP-клиент для взаимодействия с Python ML-сервисом.
-/// Базовый адрес задаётся через <c>MlService:BaseUrl</c> в конфигурации.
 /// </summary>
 public class MlServiceClient(HttpClient http) : IMlServiceClient
 {
     /// <inheritdoc/>
-    public async Task<bool> HealthCheckAsync(CancellationToken ct = default)
+    public async Task<bool> HealthCheckAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            var response = await http.GetAsync("/health", ct);
+            var response = await http.GetAsync("/health", cancellationToken);
             return response.IsSuccessStatusCode;
         }
         catch
@@ -25,32 +24,33 @@ public class MlServiceClient(HttpClient http) : IMlServiceClient
     }
 
     /// <inheritdoc/>
-    public async Task<MlBatchResultDto> RunForecastBatchAsync(CancellationToken ct = default)
-        => await PostAsync("/forecast/run-batch", ct);
+    public async Task<MlBatchResultDto> RunForecastBatchAsync(CancellationToken cancellationToken = default)
+        => await PostAsync("/forecast/run-batch", cancellationToken);
 
     /// <inheritdoc/>
-    public async Task<MlBatchResultDto> RunAnomalyDetectionAsync(CancellationToken ct = default)
-        => await PostAsync("/anomalies/detect", ct);
+    public async Task<MlBatchResultDto> RunAnomalyDetectionAsync(CancellationToken cancellationToken = default)
+        => await PostAsync("/anomalies/detect", cancellationToken);
 
     /// <inheritdoc/>
-    public async Task<MlBatchResultDto> RecomputeClustersAsync(CancellationToken ct = default)
-        => await PostAsync("/clusters/recompute", ct);
+    public async Task<MlBatchResultDto> RecomputeClustersAsync(CancellationToken cancellationToken = default)
+        => await PostAsync("/clusters/recompute", cancellationToken);
 
     /// <inheritdoc/>
-    public async Task<MlBatchResultDto> SeedProfilesAsync(bool overwrite = false, CancellationToken ct = default)
-        => await PostAsync($"/profiles/seed?overwrite={overwrite}", ct);
-
-    // -----------------------------------------------------------------------
-
-    private async Task<MlBatchResultDto> PostAsync(string path, CancellationToken ct)
+    public async Task<MlBatchResultDto> SeedProfilesAsync(bool overwrite = false, CancellationToken cancellationToken = default)
+        => await PostAsync($"/profiles/seed?overwrite={overwrite}", cancellationToken);
+    
+    /// <summary>
+    /// Выполняет POST-запрос к ML-сервису и преобразует ответ в <see cref="MlBatchResultDto"/>.
+    /// </summary>
+    private async Task<MlBatchResultDto> PostAsync(string path, CancellationToken cancellationToken)
     {
         try
         {
-            var response = await http.PostAsync(path, content: null, ct);
+            var response = await http.PostAsync(path, content: null, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
-                var body = await response.Content.ReadAsStringAsync(ct);
+                var body = await response.Content.ReadAsStringAsync(cancellationToken);
                 return new MlBatchResultDto
                 {
                     Success = false,
@@ -58,7 +58,7 @@ public class MlServiceClient(HttpClient http) : IMlServiceClient
                 };
             }
 
-            var raw = await response.Content.ReadFromJsonAsync<Dictionary<string, object>>(ct);
+            var raw = await response.Content.ReadFromJsonAsync<Dictionary<string, object>>(cancellationToken);
             var savedRaw = raw?.GetValueOrDefault("saved");
             int? saved = savedRaw is System.Text.Json.JsonElement elem && elem.ValueKind == System.Text.Json.JsonValueKind.Number
                 ? elem.GetInt32()

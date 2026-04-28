@@ -10,7 +10,8 @@ namespace MetroQualityMonitor.Infrastructure.Analytics.Services;
 /// </summary>
 public class VestibuleService(MetroQualityMonitorDbContext db) : IVestibuleService
 {
-    public async Task<IReadOnlyCollection<VestibuleDto>> GetAllAsync(short? stationId, CancellationToken ct = default)
+    /// <inheritdoc/>
+    public async Task<IReadOnlyCollection<VestibuleDto>> GetAllAsync(short? stationId, CancellationToken cancellationToken = default)
     {
         var query = db.Vestibules.AsNoTracking().AsQueryable();
 
@@ -31,6 +32,6 @@ public class VestibuleService(MetroQualityMonitorDbContext db) : IVestibuleServi
                 AdmArea      = v.AdmArea,
                 District     = v.District,
             })
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
     }
 }

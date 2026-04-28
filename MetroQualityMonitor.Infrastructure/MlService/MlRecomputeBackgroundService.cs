@@ -7,10 +7,6 @@ namespace MetroQualityMonitor.Infrastructure.MlService;
 
 /// <summary>
 /// Фоновый сервис, запускающий пересчёт ML-моделей раз в сутки.
-/// Порядок шагов: прогнозы → аномалии → кластеризация.
-///
-/// При ошибке на любом шаге — логируем и ждём следующего цикла.
-/// UI при этом продолжает работать на последних сохранённых данных.
 /// </summary>
 public sealed class MlRecomputeBackgroundService(
     IServiceScopeFactory scopeFactory,
@@ -18,11 +14,16 @@ public sealed class MlRecomputeBackgroundService(
     TimeProvider timeProvider)
     : BackgroundService
 {
+    /// <summary>Задержка перед первым запуском после старта приложения.</summary>
     private static readonly TimeSpan InitialDelay   = TimeSpan.FromMinutes(1);
+
+    /// <summary>Интервал между полными циклами пересчёта.</summary>
     private static readonly TimeSpan RecomputePeriod = TimeSpan.FromHours(24);
 
+    /// <summary>Максимальное время выполнения одного шага ML-пересчёта.</summary>
     private static readonly TimeSpan StepTimeout = TimeSpan.FromMinutes(10);
 
+    /// <inheritdoc/>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation(
@@ -38,6 +39,10 @@ public sealed class MlRecomputeBackgroundService(
         }
     }
 
+    /// <summary>
+    /// Выполняет один полный цикл пересчёта.
+    /// При недоступности ML-сервиса цикл пропускается без исключения.
+    /// </summary>
     private async Task RunCycleAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("ML пересчёт: цикл запущен.");
@@ -46,7 +51,7 @@ public sealed class MlRecomputeBackgroundService(
         using var scope = scopeFactory.CreateScope();
         var client = scope.ServiceProvider.GetRequiredService<IMlServiceClient>();
 
-        // Шаг 1: Healthcheck
+        // Healthcheck
         var isAlive = await client.HealthCheckAsync(stoppingToken);
         if (!isAlive)
         {
@@ -54,19 +59,24 @@ public sealed class MlRecomputeBackgroundService(
             return;
         }
 
-        // Шаг 2: Прогнозы
+        // Прогнозы
         await RunStepAsync("Прогнозы (SARIMA)", () => client.RunForecastBatchAsync(stoppingToken));
 
-        // Шаг 3: Аномалии
+        // Аномалии
         await RunStepAsync("Аномалии (Z-score + IF + YoY)", () => client.RunAnomalyDetectionAsync(stoppingToken));
 
-        // Шаг 4: Кластеры
+        // Кластеры
         await RunStepAsync("Кластеризация (K-Means)", () => client.RecomputeClustersAsync(stoppingToken));
 
         var elapsed = timeProvider.GetUtcNow() - cycleStart;
         logger.LogInformation("ML пересчёт завершён за {Elapsed:mm\\:ss}.", elapsed);
     }
 
+    /// <summary>
+    /// Запускает один шаг ML-пересчёта с тайм-аутом <see cref="StepTimeout"/> и структурированным логированием.
+    /// </summary>
+    /// <param name="stepName">Читаемое название шага для лога.</param>
+    /// <param name="action">Функция, вызывающая соответствующий метод ML-клиента.</param>
     private async Task RunStepAsync(string stepName, Func<Task<Application.MlService.Models.MlBatchResultDto>> action)
     {
         var sw = System.Diagnostics.Stopwatch.StartNew();

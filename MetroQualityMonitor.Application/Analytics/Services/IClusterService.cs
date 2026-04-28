@@ -10,5 +10,5 @@ public interface IClusterService
     /// <summary>
     /// Возвращает все станции с результатами кластеризации и координатами для карты.
     /// </summary>
-    Task<IReadOnlyCollection<StationWithClusterDto>> GetAllWithClustersAsync(CancellationToken ct = default);
+    Task<IReadOnlyCollection<StationWithClusterDto>> GetAllWithClustersAsync(CancellationToken cancellationToken = default);
 }

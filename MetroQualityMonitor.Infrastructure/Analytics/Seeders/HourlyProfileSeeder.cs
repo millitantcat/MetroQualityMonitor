@@ -15,15 +15,19 @@ public class HourlyProfileSeeder(MetroQualityMonitorDbContext db)
     /// <summary>
     /// Засевает таблицу часовых профилей, если она ещё пуста.
     /// </summary>
-    public async Task SeedAsync(CancellationToken ct = default)
+    public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
-        if (await db.HourlyProfiles.AnyAsync(ct))
+        if (await db.HourlyProfiles.AnyAsync(cancellationToken))
             return;
 
         db.HourlyProfiles.AddRange(GenerateProfiles());
-        await db.SaveChangesAsync(ct);
+        await db.SaveChangesAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Генерирует записи <see cref="HourlyProfile"/> для всех комбинаций категории станции и типа дня.
+    /// Сырые веса нормируются так, чтобы сумма долей по каждому дню была равна 1.0.
+    /// </summary>
     private static IEnumerable<HourlyProfile> GenerateProfiles()
     {
         foreach (var ((category, dayType), (rawIn, rawOut)) in GetRawWeights())
@@ -45,6 +49,7 @@ public class HourlyProfileSeeder(MetroQualityMonitorDbContext db)
         }
     }
 
+    /// <summary>Нормирует массив весов так, чтобы их сумма равнялась 1.0.</summary>
     private static double[] Normalize(double[] raw)
     {
         var sum = raw.Sum();

@@ -59,16 +59,28 @@ mat-nav-list {
 
 .nav-item {
   border-radius: 8px !important;
-  margin: 2px 8px !important;
+  margin: 3px 8px !important;
   color: #555 !important;
   transition: background .15s ease !important;
+  height: 48px !important;
+  font-size: 14px !important;
 
   &:hover {
     background: #f0f4ff !important;
     color: #1565c0 !important;
   }
 
-  mat-icon { color: inherit !important; }
+  mat-icon {
+    color: inherit !important;
+    font-size: 22px !important;
+    width: 22px !important;
+    height: 22px !important;
+  }
+
+  span[matListItemTitle] {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+  }
 }
 
 .active-link {

@@ -3,15 +3,13 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatSelectModule } from '@angular/material/select';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
+import maplibregl from 'maplibre-gl';
 import { ApiService } from '../../core/services/api.service';
 import { StationWithClusterDto, LineDto, VestibuleDto } from '../../core/models';
-import { forkJoin } from 'rxjs';
-import * as L from 'leaflet';
 
 type MapMode = 'clusters' | 'vestibules';
 
@@ -29,14 +27,26 @@ const CLUSTER_LABELS: Record<string, string> = {
   Mixed:       'Смешанные'
 };
 
+const OSM_STYLE: maplibregl.StyleSpecification = {
+  version: 8,
+  sources: {
+    osm: {
+      type: 'raster',
+      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+    }
+  },
+  layers: [{ id: 'osm-tiles', type: 'raster', source: 'osm' }]
+};
+
 @Component({
   selector: 'app-map',
   standalone: true,
   imports: [
     CommonModule, FormsModule,
     MatProgressSpinnerModule, MatButtonToggleModule,
-    MatSelectModule, MatFormFieldModule, MatIconModule,
-    MatSlideToggleModule
+    MatIconModule, MatSlideToggleModule
   ],
   templateUrl: './map.component.html',
   styleUrl: './map.component.scss'
@@ -51,7 +61,6 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   mode: MapMode = 'clusters';
   showAnomalies = true;
   showRepairs   = true;
-  selectedLineId: number | null = null;
 
   stations:   StationWithClusterDto[] = [];
   vestibules: VestibuleDto[] = [];
@@ -61,11 +70,13 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   totalAnomalies = 0;
   totalRepairs   = 0;
 
-  private map?: L.Map;
-  private markers: (L.CircleMarker | L.Marker)[] = [];
-
   readonly CLUSTER_LABELS = CLUSTER_LABELS;
   readonly CLUSTER_COLORS = CLUSTER_COLORS;
+
+  private map: maplibregl.Map | null = null;
+  private activePopup: maplibregl.Popup | null = null;
+  private mapReady  = false;
+  private dataReady = false;
 
   ngOnInit(): void {
     forkJoin({
@@ -80,108 +91,189 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         this.totalAnomalies = data.stations.reduce((s, x) => s + (x.activeAnomalyCount ?? 0), 0);
         this.totalRepairs   = data.stations.reduce((s, x) => s + (x.activeRepairCount  ?? 0), 0);
         this.buildClusterStats();
-        this.loading = false;
-        setTimeout(() => this.renderMarkers(), 0);
+        this.loading   = false;
+        this.dataReady = true;
+        if (this.mapReady) this.renderMarkers();
       },
       error: () => this.loading = false
     });
   }
 
   ngAfterViewInit(): void { this.initMap(); }
-  ngOnDestroy(): void { this.map?.remove(); }
 
-  private initMap(): void {
-    this.map = L.map(this.mapElRef.nativeElement, {
-      center: [55.751244, 37.618423],
-      zoom: 11,
-      zoomControl: true
-    });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 19
-    }).addTo(this.map);
+  ngOnDestroy(): void {
+    this.clearLayers();
+    this.map?.remove();
   }
 
-  private clearMarkers(): void {
-    this.markers.forEach(m => m.remove());
-    this.markers = [];
+  private initMap(): void {
+    this.map = new maplibregl.Map({
+      container: this.mapElRef.nativeElement,
+      style: OSM_STYLE,
+      center: [37.618423, 55.751244],
+      zoom: 11
+    });
+
+    this.map.on('load', () => {
+      this.mapReady = true;
+      if (this.dataReady) this.renderMarkers();
+    });
+  }
+
+  private clearLayers(): void {
+    this.activePopup?.remove();
+    this.activePopup = null;
+    if (!this.map) return;
+    if (this.map.getLayer('markers-layer')) this.map.removeLayer('markers-layer');
+    if (this.map.getSource('markers'))      this.map.removeSource('markers');
   }
 
   renderMarkers(): void {
     if (!this.map) return;
-    this.clearMarkers();
+    this.clearLayers();
     if (this.mode === 'clusters') this.renderClusterMarkers();
     else                          this.renderVestibuleMarkers();
   }
 
   private renderClusterMarkers(): void {
-    for (const s of this.stations) {
-      if (!s.latitude || !s.longitude) continue;
-
-      const label      = s.clusterLabel ?? 'Mixed';
-      const baseColor  = CLUSTER_COLORS[label] ?? '#757575';
-      const hasAnomaly = this.showAnomalies && (s.activeAnomalyCount ?? 0) > 0;
-      const hasRepair  = this.showRepairs   && (s.activeRepairCount  ?? 0) > 0;
-
-      const fillColor   = hasAnomaly ? '#e53935' : hasRepair ? '#fb8c00' : baseColor;
-      const radius      = hasAnomaly ? 11 : hasRepair ? 9 : 7;
-      const weight      = hasAnomaly || hasRepair ? 2.5 : 1.5;
-      const borderColor = hasAnomaly ? '#b71c1c' : hasRepair ? '#e65100' : '#fff';
-
-      const m = L.circleMarker([s.latitude, s.longitude], {
-        radius,
-        fillColor,
-        color:       borderColor,
-        weight,
-        opacity:     1,
-        fillOpacity: hasAnomaly ? 0.95 : 0.85
+    const features = this.stations
+      .filter(s => s.latitude && s.longitude)
+      .map(s => {
+        const label      = s.clusterLabel ?? 'Mixed';
+        const baseColor  = CLUSTER_COLORS[label] ?? '#757575';
+        const hasAnomaly = this.showAnomalies && (s.activeAnomalyCount ?? 0) > 0;
+        const hasRepair  = this.showRepairs   && (s.activeRepairCount  ?? 0) > 0;
+        return {
+          type: 'Feature' as const,
+          geometry: { type: 'Point' as const, coordinates: [s.longitude!, s.latitude!] },
+          properties: {
+            stationId:   s.stationId,
+            color:       hasAnomaly ? '#e53935' : hasRepair ? '#fb8c00' : baseColor,
+            radius:      hasAnomaly ? 11 : hasRepair ? 9 : 7,
+            strokeColor: hasAnomaly ? '#b71c1c' : hasRepair ? '#e65100' : '#ffffff',
+            strokeWidth: hasAnomaly || hasRepair ? 2.5 : 1.5,
+            sortKey:     hasAnomaly ? 3 : hasRepair ? 2 : 1
+          }
+        };
       });
 
-      const anomalyBadge = hasAnomaly
-        ? `<div class="popup-alert popup-alert--anomaly">⚠ Аномалий: ${s.activeAnomalyCount}</div>` : '';
-      const repairBadge = hasRepair
-        ? `<div class="popup-alert popup-alert--repair">🔧 Ремонтов эскалаторов: ${s.activeRepairCount}</div>` : '';
-      const clusterBadge = `<div class="popup-cluster" style="color:${baseColor}">● ${CLUSTER_LABELS[label] ?? label}</div>`;
+    this.map!.addSource('markers', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features }
+    });
 
-      m.bindPopup(`
-        <div class="map-popup">
-          <div class="popup-title">${s.stationName}</div>
-          <div class="popup-line">${s.lines.join(' · ')}</div>
-          ${clusterBadge}
-          ${anomalyBadge}${repairBadge}
-          <a href="/stations/${s.stationId}" class="popup-link">Подробнее →</a>
-        </div>
-      `, { maxWidth: 240 });
+    this.map!.addLayer({
+      id: 'markers-layer',
+      type: 'circle',
+      source: 'markers',
+      layout: { 'circle-sort-key': ['get', 'sortKey'] },
+      paint: {
+        'circle-radius':       ['get', 'radius'],
+        'circle-color':        ['get', 'color'],
+        'circle-stroke-color': ['get', 'strokeColor'],
+        'circle-stroke-width': ['get', 'strokeWidth']
+      }
+    });
 
-      m.on('click', () => this.router.navigate(['/stations', s.stationId]));
-      m.addTo(this.map!);
-      this.markers.push(m);
-    }
+    this.map!.on('mouseenter', 'markers-layer', () => {
+      this.map!.getCanvas().style.cursor = 'pointer';
+    });
+    this.map!.on('mouseleave', 'markers-layer', () => {
+      this.map!.getCanvas().style.cursor = '';
+    });
+
+    this.map!.on('click', 'markers-layer', e => {
+      if (!e.features?.length) return;
+      const stationId = e.features[0].properties['stationId'] as number;
+      const station   = this.stations.find(s => s.stationId === stationId);
+      if (!station) return;
+
+      const label     = station.clusterLabel ?? 'Mixed';
+      const baseColor = CLUSTER_COLORS[label] ?? '#757575';
+
+      this.activePopup?.remove();
+      this.activePopup = new maplibregl.Popup({ offset: 12, closeButton: false })
+        .setLngLat(e.lngLat)
+        .setHTML(this.buildStationPopupHtml(station, baseColor, label))
+        .addTo(this.map!);
+
+      this.activePopup.on('open', () => {
+        this.activePopup!.getElement()
+          .querySelector('.popup-link')
+          ?.addEventListener('click', ev => {
+            ev.preventDefault();
+            this.activePopup?.remove();
+            this.router.navigate(['/stations', station.stationId]);
+          });
+      });
+    });
+  }
+
+  private buildStationPopupHtml(s: StationWithClusterDto, baseColor: string, label: string): string {
+    const anomalyBadge = this.showAnomalies && (s.activeAnomalyCount ?? 0) > 0
+      ? `<div class="popup-alert popup-alert--anomaly">⚠ Аномалий: ${s.activeAnomalyCount}</div>` : '';
+    const repairBadge = this.showRepairs && (s.activeRepairCount ?? 0) > 0
+      ? `<div class="popup-alert popup-alert--repair">🔧 Ремонтов: ${s.activeRepairCount}</div>` : '';
+    return `
+      <div class="popup-title">${s.stationName}</div>
+      <div class="popup-line">${s.lines.join(' · ')}</div>
+      <div class="popup-cluster" style="color:${baseColor}">● ${CLUSTER_LABELS[label] ?? label}</div>
+      ${anomalyBadge}${repairBadge}
+      <a class="popup-link" href="#">Подробнее →</a>`;
   }
 
   private renderVestibuleMarkers(): void {
-    for (const v of this.vestibules.slice(0, 3000)) {
-      const m = L.circleMarker([v.latitude!, v.longitude!], {
-        radius: 5,
-        fillColor: '#1565c0',
-        color: '#fff',
-        weight: 1.5,
-        opacity: 1,
-        fillOpacity: 0.78
-      });
+    const features = this.vestibules.slice(0, 1500).map(v => ({
+      type: 'Feature' as const,
+      geometry: { type: 'Point' as const, coordinates: [v.longitude!, v.latitude!] },
+      properties: {
+        name:          v.name,
+        stationName:   v.stationName   ?? '',
+        vestibuleType: v.vestibuleType ?? '',
+        admArea:       v.admArea       ?? ''
+      }
+    }));
 
-      m.bindPopup(`
-        <div class="map-popup">
-          <div class="popup-title">${v.name}</div>
-          ${v.stationName ? `<div class="popup-line">${v.stationName}</div>` : ''}
-          ${v.vestibuleType ? `<div class="popup-line">${v.vestibuleType}</div>` : ''}
-          ${v.admArea ? `<div class="popup-line">${v.admArea}</div>` : ''}
-        </div>
-      `, { maxWidth: 220 });
+    this.map!.addSource('markers', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features }
+    });
 
-      m.addTo(this.map!);
-      this.markers.push(m);
-    }
+    this.map!.addLayer({
+      id: 'markers-layer',
+      type: 'circle',
+      source: 'markers',
+      paint: {
+        'circle-radius':       5,
+        'circle-color':        '#1565c0',
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 1.5
+      }
+    });
+
+    this.map!.on('mouseenter', 'markers-layer', () => {
+      this.map!.getCanvas().style.cursor = 'pointer';
+    });
+    this.map!.on('mouseleave', 'markers-layer', () => {
+      this.map!.getCanvas().style.cursor = '';
+    });
+
+    this.map!.on('click', 'markers-layer', e => {
+      if (!e.features?.length) return;
+      const p = e.features[0].properties as {
+        name: string; stationName: string; vestibuleType: string; admArea: string;
+      };
+      this.activePopup?.remove();
+      this.activePopup = new maplibregl.Popup({ offset: 12, closeButton: false })
+        .setLngLat(e.lngLat)
+        .setHTML(`
+          <div class="popup-title">${p.name}</div>
+          ${p.stationName   ? `<div class="popup-line">${p.stationName}</div>`   : ''}
+          ${p.vestibuleType ? `<div class="popup-line">${p.vestibuleType}</div>` : ''}
+          ${p.admArea       ? `<div class="popup-line">${p.admArea}</div>`       : ''}
+        `)
+        .addTo(this.map!);
+    });
   }
 
   onModeChange(): void { this.renderMarkers(); }

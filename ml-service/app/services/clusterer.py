@@ -89,7 +89,7 @@ def recompute_clusters(session: Session) -> dict:
         logger.warning("Данные о пассажиропотоке не найдены; кластеризация пропущена.")
         return {"saved": 0}
 
-    # ── Признаки per-station ──────────────────────────────────────────────
+    # Признаки per-station
     stats = (
         df.groupby("station_id")
         .agg(
@@ -125,7 +125,7 @@ def recompute_clusters(session: Session) -> dict:
         logger.warning("Недостаточно станций для кластеризации (нужно ≥ 2).")
         return {"saved": 0}
 
-    # ── K-Means ───────────────────────────────────────────────────────────
+    # K-Means
     X       = stats[_FEATURE_NAMES].values
     scaler  = StandardScaler()
     X_scaled = scaler.fit_transform(X)
@@ -137,7 +137,7 @@ def recompute_clusters(session: Session) -> dict:
     label_map              = _assign_labels_by_centroids(km, _FEATURE_NAMES)
     stats["cluster_label"] = stats["cluster_id"].map(label_map)
 
-    # ── Запись ────────────────────────────────────────────────────────────
+    # Запись
     now   = datetime.now(timezone.utc)
     saved = 0
 

@@ -1,6 +1,7 @@
 .page {
   padding: 32px;
-  max-width: 1400px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .summary-row {
@@ -34,8 +35,17 @@
 }
 
 .filter-field {
-  width: 200px;
+  width: 180px;
   ::ng-deep .mat-mdc-form-field-subscript-wrapper { display: none; }
+
+  &--sm { width: 110px; }
+}
+
+.reset-btn {
+  color: #757575;
+  border-color: #e0e0e0;
+  height: 40px;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; margin-right: 4px; }
 }
 
 .filter-count {

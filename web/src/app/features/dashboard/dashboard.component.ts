@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ElementRef, ViewChild, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, ElementRef, ViewChild, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -30,6 +30,7 @@ import Chart from 'chart.js/auto';
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   private readonly api = inject(ApiService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   @ViewChild('flowChart')    flowChartRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('topChart')     topChartRef!: ElementRef<HTMLCanvasElement>;
@@ -64,7 +65,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.anomalyStats   = data.anomalyStats;
         this.linesFlow      = data.linesFlow;
         this.loading        = false;
-        setTimeout(() => this.buildCharts(), 0);
+        this.cdr.detectChanges();
+        this.buildCharts();
       },
       error: () => this.loading = false
     });

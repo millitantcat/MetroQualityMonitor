@@ -10,27 +10,27 @@ public interface IDashboardService
     /// <summary>
     /// Возвращает KPI-карточки дашборда.
     /// </summary>
-    Task<DashboardKpiDto> GetKpiAsync(CancellationToken ct = default);
+    Task<DashboardKpiDto> GetKpiAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает топ-N станций по заданной метрике пассажиропотока.
     /// </summary>
     /// <param name="n">Количество станций в топе.</param>
     /// <param name="metric">Метрика: «incoming» или «outgoing».</param>
-    Task<IReadOnlyCollection<TopStationDto>> GetTopStationsAsync(int n, string metric, CancellationToken ct = default);
+    Task<IReadOnlyCollection<TopStationDto>> GetTopStationsAsync(int n, string metric, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает агрегированный пассажиропоток по кварталам (для графика сезонности).
     /// </summary>
-    Task<IReadOnlyCollection<SeasonalityPointDto>> GetSeasonalityAsync(CancellationToken ct = default);
+    Task<IReadOnlyCollection<SeasonalityPointDto>> GetSeasonalityAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает статистику аномалий (по severity и типу) для диаграмм дашборда.
     /// </summary>
-    Task<AnomalyStatsDto> GetAnomalyStatsAsync(CancellationToken ct = default);
+    Task<AnomalyStatsDto> GetAnomalyStatsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает пассажиропоток по линиям за последний доступный квартал.
     /// </summary>
-    Task<IReadOnlyCollection<LineFlowDto>> GetLinesFlowAsync(CancellationToken ct = default);
+    Task<IReadOnlyCollection<LineFlowDto>> GetLinesFlowAsync(CancellationToken cancellationToken = default);
 }

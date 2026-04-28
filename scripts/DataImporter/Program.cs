@@ -21,9 +21,8 @@ var dbOptions = new DbContextOptionsBuilder<MetroQualityMonitorDbContext>()
 var datasetsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../..", "datasets"));
 var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-// ── 1. Линии ─────────────────────────────────────────────────────────────────
-
-Console.WriteLine("Импорт линий метро...");
+// Линии 
+Console.WriteLine("Импорт линий метро.");
 {
     await using var db = new MetroQualityMonitorDbContext(dbOptions);
 
@@ -51,9 +50,8 @@ Console.WriteLine("Импорт линий метро...");
     Console.WriteLine($"  Линий сохранено: {saved}");
 }
 
-// ── 2. Станции + связи Станция-Линия ─────────────────────────────────────────
-
-Console.WriteLine("Импорт станций метро...");
+// Станции + связи Станция-Линия
+Console.WriteLine("Импорт станций метро.");
 {
     await using var db = new MetroQualityMonitorDbContext(dbOptions);
 
@@ -68,7 +66,6 @@ Console.WriteLine("Импорт станций метро...");
 
     var vestibulesCollection = JsonSerializer.Deserialize<GeoJsonCollection<VestibuleAttributes>>(vestibulesJson, jsonOptions)!;
 
-    // Collect unique station-name → line-name pairs from vestibule data
     var stationLineMap = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
     foreach (var feature in vestibulesCollection.Features)
     {
@@ -102,9 +99,8 @@ Console.WriteLine("Импорт станций метро...");
     Console.WriteLine($"  Станций/связей сохранено: {saved}");
 }
 
-// ── 3. Вестибюли + ремонты эскалаторов ───────────────────────────────────────
-
-Console.WriteLine("Импорт вестибюлей...");
+// Вестибюли + ремонты эскалаторов
+Console.WriteLine("Импорт вестибюлей.");
 {
     await using var db = new MetroQualityMonitorDbContext(dbOptions);
 
@@ -152,7 +148,6 @@ Console.WriteLine("Импорт вестибюлей...");
         if (!string.IsNullOrWhiteSpace(attr.Line) && linesByName.TryGetValue(attr.Line, out var line))
             vestibule.LineId = line.Id;
 
-        // Upsert escalator repairs
         foreach (var repairDto in attr.RepairOfEscalators ?? [])
         {
             if (!existingRepairs.TryGetValue(repairDto.GlobalId, out var repair))
@@ -179,9 +174,8 @@ Console.WriteLine("Импорт вестибюлей...");
     Console.WriteLine($"  Вестибюлей/ремонтов сохранено: {saved}");
 }
 
-// ── 4. Пассажиропоток ─────────────────────────────────────────────────────────
-
-Console.WriteLine("Импорт пассажиропотока...");
+// Пассажиропоток
+Console.WriteLine("Импорт пассажиропотока.");
 {
     var flowJson = await File.ReadAllTextAsync(Path.Combine(datasetsDir, "passenger_flow.json"));
 
@@ -236,7 +230,7 @@ Console.WriteLine("Импорт пассажиропотока...");
 Console.WriteLine("Готово.");
 return 0;
 
-// ── DTOs ──────────────────────────────────────────────────────────────────────
+#region DTOs
 
 record GeoJsonCollection<TAttr>(
     [property: JsonPropertyName("features")] List<GeoJsonFeature<TAttr>> Features);
@@ -289,3 +283,5 @@ record PassengerFlowAttributes(
     [property: JsonPropertyName("IncomingPassengers")] int IncomingPassengers,
     [property: JsonPropertyName("OutgoingPassengers")] int OutgoingPassengers,
     [property: JsonPropertyName("global_id")]          long GlobalId);
+    
+#endregion

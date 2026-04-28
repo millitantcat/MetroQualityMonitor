@@ -11,10 +11,11 @@ namespace MetroQualityMonitor.Infrastructure.Analytics.Services;
 /// </summary>
 public class AnomalyService(MetroQualityMonitorDbContext db) : IAnomalyService
 {
+    /// <inheritdoc/>
     public async Task<IReadOnlyCollection<AnomalyDto>> GetAllAsync(
         AnomalySeverities? severity,
         bool? isAcknowledged,
-        CancellationToken ct = default)
+        CancellationToken cancellationToken = default)
     {
         var query = db.Anomalies
             .AsNoTracking()
@@ -45,18 +46,19 @@ public class AnomalyService(MetroQualityMonitorDbContext db) : IAnomalyService
                 AcknowledgedDateTimeUtc = a.AcknowledgedDateTimeUtc,
                 CreateDateTimeUtc       = a.CreateDateTimeUtc,
             })
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<bool> AcknowledgeAsync(Guid id, CancellationToken ct = default)
+    /// <inheritdoc/>
+    public async Task<bool> AcknowledgeAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var anomaly = await db.Anomalies.FindAsync([id], ct);
+        var anomaly = await db.Anomalies.FindAsync([id], cancellationToken);
         if (anomaly is null)
             return false;
 
         anomaly.IsAcknowledged          = true;
         anomaly.AcknowledgedDateTimeUtc = DateTime.UtcNow;
-        await db.SaveChangesAsync(ct);
+        await db.SaveChangesAsync(cancellationToken);
         return true;
     }
 }

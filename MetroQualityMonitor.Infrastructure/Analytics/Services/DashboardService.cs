@@ -10,26 +10,27 @@ namespace MetroQualityMonitor.Infrastructure.Analytics.Services;
 /// </summary>
 public class DashboardService(MetroQualityMonitorDbContext db) : IDashboardService
 {
-    public async Task<DashboardKpiDto> GetKpiAsync(CancellationToken ct = default)
+    /// <inheritdoc/>
+    public async Task<DashboardKpiDto> GetKpiAsync(CancellationToken cancellationToken = default)
     {
         var latestPeriod = await db.PassengerFlowRecords
             .AsNoTracking()
             .OrderByDescending(r => r.Year)
             .ThenByDescending(r => r.Quarter)
             .Select(r => new { r.Year, r.Quarter })
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(cancellationToken);
 
         long totalPassengers = 0;
         if (latestPeriod is not null)
         {
             totalPassengers = await db.PassengerFlowRecords
                 .Where(r => r.Year == latestPeriod.Year && r.Quarter == latestPeriod.Quarter)
-                .SumAsync(r => (long)r.IncomingPassengers, ct);
+                .SumAsync(r => (long)r.IncomingPassengers, cancellationToken);
         }
 
-        var stationCount       = await db.Stations.CountAsync(ct);
-        var activeAnomalyCount = await db.Anomalies.CountAsync(a => !a.IsAcknowledged, ct);
-        var activeRepairCount  = await db.EscalatorRepairs.CountAsync(r => !r.IsDeleted, ct);
+        var stationCount       = await db.Stations.CountAsync(cancellationToken);
+        var activeAnomalyCount = await db.Anomalies.CountAsync(a => !a.IsAcknowledged, cancellationToken);
+        var activeRepairCount  = await db.EscalatorRepairs.CountAsync(r => !r.IsDeleted, cancellationToken);
 
         return new DashboardKpiDto
         {
@@ -42,15 +43,16 @@ public class DashboardService(MetroQualityMonitorDbContext db) : IDashboardServi
         };
     }
 
+    /// <inheritdoc/>
     public async Task<IReadOnlyCollection<TopStationDto>> GetTopStationsAsync(
-        int n, string metric, CancellationToken ct = default)
+        int n, string metric, CancellationToken cancellationToken = default)
     {
         var latestPeriod = await db.PassengerFlowRecords
             .AsNoTracking()
             .OrderByDescending(r => r.Year)
             .ThenByDescending(r => r.Quarter)
             .Select(r => new { r.Year, r.Quarter })
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (latestPeriod is null)
             return [];
@@ -71,18 +73,19 @@ public class DashboardService(MetroQualityMonitorDbContext db) : IDashboardServi
             })
             .OrderByDescending(r => r.Value)
             .Take(n)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
-        return records.Select(r => new TopStationDto
+        return [.. records.Select(r => new TopStationDto
         {
             StationId   = r.StationId!.Value,
             StationName = r.Name,
             Lines       = r.Lines,
             Value       = r.Value,
-        }).ToList();
+        })];
     }
 
-    public async Task<IReadOnlyCollection<SeasonalityPointDto>> GetSeasonalityAsync(CancellationToken ct = default)
+    /// <inheritdoc/>
+    public async Task<IReadOnlyCollection<SeasonalityPointDto>> GetSeasonalityAsync(CancellationToken cancellationToken = default)
     {
         return await db.PassengerFlowRecords
             .AsNoTracking()
@@ -96,16 +99,17 @@ public class DashboardService(MetroQualityMonitorDbContext db) : IDashboardServi
             })
             .OrderBy(p => p.Year)
             .ThenBy(p => p.Quarter)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<AnomalyStatsDto> GetAnomalyStatsAsync(CancellationToken ct = default)
+    /// <inheritdoc/>
+    public async Task<AnomalyStatsDto> GetAnomalyStatsAsync(CancellationToken cancellationToken = default)
     {
         var anomalies = await db.Anomalies
             .AsNoTracking()
             .Where(a => !a.IsAcknowledged)
             .Select(a => new { a.Severity, a.AnomalyType })
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         var bySeverity = anomalies
             .GroupBy(a => a.Severity.ToString())
@@ -127,14 +131,15 @@ public class DashboardService(MetroQualityMonitorDbContext db) : IDashboardServi
         };
     }
 
-    public async Task<IReadOnlyCollection<LineFlowDto>> GetLinesFlowAsync(CancellationToken ct = default)
+    /// <inheritdoc/>
+    public async Task<IReadOnlyCollection<LineFlowDto>> GetLinesFlowAsync(CancellationToken cancellationToken = default)
     {
         var latestPeriod = await db.PassengerFlowRecords
             .AsNoTracking()
             .OrderByDescending(r => r.Year)
             .ThenByDescending(r => r.Quarter)
             .Select(r => new { r.Year, r.Quarter })
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (latestPeriod is null)
             return [];
@@ -152,9 +157,9 @@ public class DashboardService(MetroQualityMonitorDbContext db) : IDashboardServi
                 r.IncomingPassengers,
                 r.OutgoingPassengers,
             })
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
-        return records
+        return [.. records
             .GroupBy(r => new { r.LineId, r.LineName, r.StationCount })
             .Select(g => new LineFlowDto
             {
@@ -164,7 +169,6 @@ public class DashboardService(MetroQualityMonitorDbContext db) : IDashboardServi
                 TotalIncoming = g.Sum(r => (long)r.IncomingPassengers),
                 TotalOutgoing = g.Sum(r => (long)r.OutgoingPassengers),
             })
-            .OrderByDescending(l => l.TotalIncoming)
-            .ToList();
+            .OrderByDescending(l => l.TotalIncoming)];
     }
 }

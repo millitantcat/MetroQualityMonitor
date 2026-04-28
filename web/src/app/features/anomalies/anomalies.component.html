@@ -16,6 +16,26 @@
   <!-- Filters -->
   <div class="card filters-card">
     <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Год</mat-label>
+      <mat-select [(ngModel)]="yearFilter" (ngModelChange)="applyFilters()">
+        <mat-option [value]="''">Все годы</mat-option>
+        @for (y of availableYears; track y) {
+          <mat-option [value]="y">{{ y }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field filter-field--sm">
+      <mat-label>Квартал</mat-label>
+      <mat-select [(ngModel)]="quarterFilter" (ngModelChange)="applyFilters()">
+        <mat-option value="">Все</mat-option>
+        @for (q of quarters.slice(1); track q) {
+          <mat-option [value]="q">{{ q }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
       <mat-label>Серьёзность</mat-label>
       <mat-select [(ngModel)]="severityFilter" (ngModelChange)="applyFilters()">
         <mat-option value="">Все</mat-option>
@@ -25,9 +45,26 @@
       </mat-select>
     </mat-form-field>
 
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Метод</mat-label>
+      <mat-select [(ngModel)]="typeFilter" (ngModelChange)="applyFilters()">
+        <mat-option value="">Все</mat-option>
+        <mat-option value="Statistical">Z-score</mat-option>
+        <mat-option value="IsolationForest">Isolation Forest</mat-option>
+        <mat-option value="YoYDeviation">YoY</mat-option>
+      </mat-select>
+    </mat-form-field>
+
     <mat-checkbox [(ngModel)]="showAcknowledged" (ngModelChange)="applyFilters()">
       Показывать подтверждённые
     </mat-checkbox>
+
+    @if (isFiltered) {
+      <button mat-stroked-button (click)="resetFilters()" class="reset-btn">
+        <mat-icon>filter_alt_off</mat-icon>
+        Сбросить
+      </button>
+    }
 
     <div class="filter-count">Найдено: {{ totalCount }}</div>
   </div>

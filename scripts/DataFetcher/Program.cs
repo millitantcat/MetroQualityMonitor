@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Nodes;
 
 const string FeaturesUrl = "https://apidata.mos.ru/v1/features";
@@ -14,7 +13,7 @@ var config = new ConfigurationBuilder()
 var apiKey = config["MosApiKey"];
 if (string.IsNullOrWhiteSpace(apiKey))
 {
-    Console.Error.WriteLine("API key is not set. Fill in MosApiKey in appsettings.local.json.");
+    Console.Error.WriteLine("Отсутствует API-key.");
     return 1;
 }
 

@@ -61,10 +61,7 @@ def _severity_from_yoy(deviation: float) -> int:
     return SEVERITY_LOW
 
 
-# ---------------------------------------------------------------------------
 # Подход 1: Z-score
-# ---------------------------------------------------------------------------
-
 def detect_statistical_anomalies(df: pd.DataFrame) -> list[dict]:
     """
     Для каждой станции вычисляет Z-score по входящим пассажирам.
@@ -103,10 +100,7 @@ def detect_statistical_anomalies(df: pd.DataFrame) -> list[dict]:
     return anomalies
 
 
-# ---------------------------------------------------------------------------
 # Подход 2: Year-over-Year Deviation
-# ---------------------------------------------------------------------------
-
 def detect_yoy_anomalies(df: pd.DataFrame) -> list[dict]:
     """
     Сравнивает каждый квартал с тем же кварталом предыдущего года.
@@ -151,10 +145,7 @@ def detect_yoy_anomalies(df: pd.DataFrame) -> list[dict]:
     return anomalies
 
 
-# ---------------------------------------------------------------------------
 # Подход 3: Isolation Forest
-# ---------------------------------------------------------------------------
-
 def detect_isolation_forest_anomalies(df: pd.DataFrame) -> list[dict]:
     """
     Isolation Forest на двух признаках per-record:
@@ -222,10 +213,7 @@ def detect_isolation_forest_anomalies(df: pd.DataFrame) -> list[dict]:
     return anomalies
 
 
-# ---------------------------------------------------------------------------
 # Batch-запуск
-# ---------------------------------------------------------------------------
-
 def run_anomaly_detection(session: Session) -> dict:
     """
     Запускает все три детектора и сохраняет результаты в таблицу Anomalies.

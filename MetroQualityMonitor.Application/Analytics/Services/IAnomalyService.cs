@@ -14,11 +14,11 @@ public interface IAnomalyService
     Task<IReadOnlyCollection<AnomalyDto>> GetAllAsync(
         AnomalySeverities? severity,
         bool? isAcknowledged,
-        CancellationToken ct = default);
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Подтверждает аномалию оператором.
     /// </summary>
     /// <returns>True, если аномалия найдена и подтверждена; false, если не найдена.</returns>
-    Task<bool> AcknowledgeAsync(Guid id, CancellationToken ct = default);
+    Task<bool> AcknowledgeAsync(Guid id, CancellationToken cancellationToken = default);
 }

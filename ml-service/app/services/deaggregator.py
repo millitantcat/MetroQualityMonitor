@@ -17,9 +17,7 @@ GET /api/stations/{id}/hourly.
 """
 
 import logging
-
 from sqlalchemy.orm import Session
-
 from app.models.orm import HourlyProfile
 
 logger = logging.getLogger(__name__)
@@ -44,10 +42,7 @@ def _normalize(raw: dict[int, tuple[float, float]]) -> dict[int, tuple[float, fl
     return {h: (v[0] / total_in, v[1] / total_out) for h, v in raw.items()}
 
 
-# ---------------------------------------------------------------------------
 # Профили будних дней по категориям станций
-# ---------------------------------------------------------------------------
-
 def _residential_weekday() -> dict[int, tuple[float, float]]:
     """
     Спальная станция: утренний пик входящих (рабочие уезжают в центр),
@@ -157,10 +152,7 @@ def _weekend() -> dict[int, tuple[float, float]]:
     return _normalize(raw)
 
 
-# ---------------------------------------------------------------------------
 # Сборка таблицы профилей
-# ---------------------------------------------------------------------------
-
 def build_profile_table() -> list[dict]:
     """
     Возвращает список из 384 записей (4 категории × 4 типа дня × 24 часа),

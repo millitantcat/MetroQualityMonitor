@@ -1,6 +1,6 @@
 import {
   Component, OnInit, AfterViewInit, OnDestroy, inject,
-  ViewChild, ElementRef
+  ViewChild, ElementRef, ChangeDetectorRef
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -35,6 +35,7 @@ import Chart from 'chart.js/auto';
 export class StationDetailsComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly api = inject(ApiService);
   private readonly route = inject(ActivatedRoute);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   @ViewChild('flowCanvas') flowCanvasRef!: ElementRef<HTMLCanvasElement>;
 
@@ -86,7 +87,8 @@ export class StationDetailsComponent implements OnInit, AfterViewInit, OnDestroy
         this.hourly = data.hourly;
         this.anomalies = data.anomalies;
         this.loading = false;
-        setTimeout(() => this.buildFlowChart(), 0);
+        this.cdr.detectChanges();
+        this.buildFlowChart();
       },
       error: () => this.loading = false
     });
@@ -193,7 +195,7 @@ export class StationDetailsComponent implements OnInit, AfterViewInit, OnDestroy
             spanGaps: false
           },
           {
-            label: 'Прогноз (SARIMA)',
+            label: this.forecasts[0]?.modelName === 'SARIMA' ? 'Прогноз (SARIMA)' : 'Прогноз (Seasonal Naive)',
             data: forecastData,
             borderColor: '#1565c0',
             borderDash: [6, 4],

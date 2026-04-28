@@ -154,7 +154,7 @@
   min-width: 0;
 }
 
-.leaflet-map {
+.map-canvas {
   height: 100%;
   width: 100%;
 }
@@ -169,9 +169,12 @@
   background: rgba(255,255,255,.7);
 }
 
-/* Попапы Leaflet */
-::ng-deep .map-popup {
+/* Попапы MapLibre GL */
+::ng-deep .maplibregl-popup-content {
   font-family: 'Roboto', sans-serif;
+  padding: 12px 14px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.18);
   min-width: 170px;
 
   .popup-title {
@@ -220,6 +223,9 @@
     &:hover { text-decoration: underline; }
   }
 }
+
+/* Убираем стрелку попапа */
+::ng-deep .maplibregl-popup-tip { display: none; }
 
 /* Адаптивность */
 @media (max-width: 640px) {

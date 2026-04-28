@@ -6,8 +6,8 @@ namespace MetroQualityMonitor.Domain.Analytics.Entities;
 
 /// <summary>
 /// Справочник эмпирических часовых профилей пассажиропотока.
-/// Используется для model-based деагрегации квартальных данных в часовые.
 /// </summary>
+/// <remarks>Используется для model-based деагрегации квартальных данных в часовые.</remarks>
 [Index(nameof(StationCategory), nameof(DayType), nameof(Hour), IsUnique = true)]
 [Comment("Справочник эмпирических часовых профилей пассажиропотока по категории станции и типу дня")]
 public class HourlyProfile

@@ -38,6 +38,9 @@ export class AnomaliesComponent implements OnInit {
   paged: AnomalyDto[] = [];
 
   severityFilter = '';
+  typeFilter = '';
+  yearFilter: number | '' = '';
+  quarterFilter = '';
   showAcknowledged = false;
 
   pageSize = 20;
@@ -45,6 +48,13 @@ export class AnomaliesComponent implements OnInit {
 
   readonly columns = ['station', 'period', 'type', 'severity', 'score', 'actual', 'expected', 'status', 'actions'];
   readonly severities = ['', 'Low', 'Medium', 'High'];
+  readonly quarters = ['', 'Q1', 'Q2', 'Q3', 'Q4'];
+  readonly types = ['', 'Statistical', 'IsolationForest', 'YoYDeviation'];
+
+  get availableYears(): number[] {
+    const years = [...new Set(this.all.map(a => a.year))].sort((a, b) => b - a);
+    return years;
+  }
 
   ngOnInit(): void {
     this.load();
@@ -62,9 +72,25 @@ export class AnomaliesComponent implements OnInit {
     });
   }
 
+  resetFilters(): void {
+    this.severityFilter = '';
+    this.typeFilter = '';
+    this.yearFilter = '';
+    this.quarterFilter = '';
+    this.showAcknowledged = false;
+    this.applyFilters();
+  }
+
+  get isFiltered(): boolean {
+    return !!(this.severityFilter || this.typeFilter || this.yearFilter || this.quarterFilter);
+  }
+
   applyFilters(): void {
     this.filtered = this.all.filter(a => {
       if (this.severityFilter && a.severity !== this.severityFilter) return false;
+      if (this.typeFilter && a.anomalyType !== this.typeFilter) return false;
+      if (this.yearFilter && a.year !== this.yearFilter) return false;
+      if (this.quarterFilter && a.quarter !== this.quarterFilter) return false;
       if (!this.showAcknowledged && a.isAcknowledged) return false;
       return true;
     });

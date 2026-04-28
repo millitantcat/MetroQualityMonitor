@@ -20,7 +20,7 @@ from statsmodels.tools.sm_exceptions import ConvergenceWarning
 
 from app.config import settings
 from app.models.orm import Forecast
-from app.services.data_loader import load_line_passenger_flow
+from app.services.data_loader import load_line_passenger_flow, load_station_passenger_flow
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +33,11 @@ _RU_QUARTER_MAP = {
 
 # Минимум точек для SARIMA (2 полных сезона + запас)
 _MIN_SARIMA_POINTS = 12
+_INT32_MAX = 2_147_483_647
+
+
+def _clamp(v: int) -> int:
+    return max(0, min(v, _INT32_MAX))
 
 
 def normalize_quarter(quarter: str) -> str:
@@ -75,9 +80,9 @@ def _fit_sarima(ts: pd.Series, n_steps: int) -> tuple[list[int], list[int], list
     mean = forecast.predicted_mean.values
     ci   = forecast.conf_int(alpha=0.20)  # 80% CI
 
-    predicted = [max(0, int(v)) for v in mean]
-    lower     = [max(0, int(v)) for v in ci.iloc[:, 0].values]
-    upper     = [max(0, int(v)) for v in ci.iloc[:, 1].values]
+    predicted = [_clamp(int(v)) for v in mean]
+    lower     = [_clamp(int(v)) for v in ci.iloc[:, 0].values]
+    upper     = [_clamp(int(v)) for v in ci.iloc[:, 1].values]
     return predicted, lower, upper
 
 
@@ -95,30 +100,31 @@ def _seasonal_naive(
         lookback = n - 4 + (i % 4)
         val = float(ts.iloc[lookback]) if 0 <= lookback < n else float(ts.mean())
         val = max(0.0, val)
-        predicted.append(int(val))
-        lower.append(int(val * 0.90))
-        upper.append(int(val * 1.10))
+        predicted.append(_clamp(int(val)))
+        lower.append(_clamp(int(val * 0.90)))
+        upper.append(_clamp(int(val * 1.10)))
     return predicted, lower, upper
 
 
 def _forecast_series(
     ts: pd.Series, n_steps: int, label: str
-) -> tuple[list[int], list[int], list[int]]:
-    """Выбирает SARIMA или seasonal naive и возвращает прогноз."""
+) -> tuple[list[int], list[int], list[int], str]:
+    """
+    Выбирает SARIMA или seasonal naive и возвращает (predicted, lower, upper, model_name).
+    model_name отражает реально использованную модель.
+    """
     if len(ts) >= _MIN_SARIMA_POINTS:
         try:
-            return _fit_sarima(ts, n_steps)
+            predicted, lower, upper = _fit_sarima(ts, n_steps)
+            return predicted, lower, upper, "SARIMA"
         except Exception as exc:
             logger.warning("%s: SARIMA упал (%s), используем seasonal naive.", label, exc)
     else:
         logger.info("%s: мало точек (%d), используем seasonal naive.", label, len(ts))
-    return _seasonal_naive(ts, n_steps)
+    predicted, lower, upper = _seasonal_naive(ts, n_steps)
+    return predicted, lower, upper, "SeasonalNaive"
 
-
-# ---------------------------------------------------------------------------
 # Batch-запуск
-# ---------------------------------------------------------------------------
-
 def run_batch_forecast(session: Session) -> dict:
     """
     Рассчитывает прогнозы для всех линий на settings.forecast_horizon кварталов
@@ -145,13 +151,18 @@ def run_batch_forecast(session: Session) -> dict:
     future_periods = next_quarters(last_year, last_quarter, settings.forecast_horizon)
     min_future_year = future_periods[0][0]
 
-    # Удаляем старые прогнозы для линий за будущие периоды
-    deleted = (
+    # Удаляем старые прогнозы за будущие периоды
+    deleted_lines = (
         session.query(Forecast)
         .filter(Forecast.line_id.isnot(None), Forecast.year >= min_future_year)
         .delete(synchronize_session=False)
     )
-    logger.info("Удалено %d устаревших прогнозов по линиям.", deleted)
+    deleted_stations = (
+        session.query(Forecast)
+        .filter(Forecast.station_id.isnot(None), Forecast.year >= min_future_year)
+        .delete(synchronize_session=False)
+    )
+    logger.info("Удалено %d прогнозов по линиям, %d по станциям.", deleted_lines, deleted_stations)
 
     now   = datetime.now(timezone.utc)
     saved = 0
@@ -166,12 +177,15 @@ def run_batch_forecast(session: Session) -> dict:
         label_out = f"line={line_id} outgoing"
 
         try:
-            pred_in,  lower_in,  upper_in  = _forecast_series(ts_in,  settings.forecast_horizon, label_in)
-            pred_out, lower_out, upper_out = _forecast_series(ts_out, settings.forecast_horizon, label_out)
+            pred_in,  lower_in,  upper_in,  model_in  = _forecast_series(ts_in,  settings.forecast_horizon, label_in)
+            pred_out, lower_out, upper_out, model_out = _forecast_series(ts_out, settings.forecast_horizon, label_out)
         except Exception as exc:
             logger.error("Линия %s: не удалось построить прогноз (%s), пропуск.", line_id, exc)
             skipped += 1
             continue
+
+        # Если для incoming и outgoing использованы разные модели — берём более слабую
+        actual_model = model_in if model_in == model_out else "SeasonalNaive"
 
         for i, (year, quarter) in enumerate(future_periods):
             session.add(Forecast(
@@ -186,7 +200,7 @@ def run_batch_forecast(session: Session) -> dict:
                 confidence_upper_incoming=upper_in[i],
                 confidence_lower_outgoing=lower_out[i],
                 confidence_upper_outgoing=upper_out[i],
-                model_name=settings.model_name,
+                model_name=actual_model,
                 model_version=settings.model_version,
                 create_date_time_utc=now,
             ))
@@ -195,13 +209,57 @@ def run_batch_forecast(session: Session) -> dict:
         lines_processed += 1
 
     logger.info("Сохранено %d прогнозов для %d линий.", saved, lines_processed)
-    return {"saved": saved, "skipped": skipped, "lines": lines_processed}
+
+    # --- Прогноз по станциям (Seasonal Naive) ---
+    df_st = load_station_passenger_flow(session)
+    stations_processed = 0
+    stations_skipped = 0
+
+    if not df_st.empty:
+        df_st["quarter"] = df_st["quarter"].map(normalize_quarter)
+        df_st["date"] = df_st.apply(
+            lambda r: quarter_to_timestamp(int(r["year"]), r["quarter"]), axis=1
+        )
+        df_st = df_st.sort_values(["station_id", "date"])
+
+        for station_id, grp in df_st.groupby("station_id"):
+            grp   = grp.set_index("date").sort_index()
+            ts_in = grp["incoming"]
+            ts_out = grp["outgoing"]
+
+            if len(ts_in) < 4:
+                stations_skipped += 1
+                continue
+
+            pred_in,  lower_in,  upper_in  = _seasonal_naive(ts_in,  settings.forecast_horizon)
+            pred_out, lower_out, upper_out = _seasonal_naive(ts_out, settings.forecast_horizon)
+
+            for i, (year, quarter) in enumerate(future_periods):
+                session.add(Forecast(
+                    id=uuid.uuid4(),
+                    line_id=None,
+                    station_id=int(station_id),
+                    year=year,
+                    quarter=quarter,
+                    predicted_incoming=pred_in[i],
+                    predicted_outgoing=pred_out[i],
+                    confidence_lower_incoming=lower_in[i],
+                    confidence_upper_incoming=upper_in[i],
+                    confidence_lower_outgoing=lower_out[i],
+                    confidence_upper_outgoing=upper_out[i],
+                    model_name="SeasonalNaive",
+                    model_version=settings.model_version,
+                    create_date_time_utc=now,
+                ))
+                saved += 1
+
+            stations_processed += 1
+
+    logger.info("Сохранено прогнозов по станциям: %d станций, %d пропущено.", stations_processed, stations_skipped)
+    return {"saved": saved, "skipped": skipped, "lines": lines_processed, "stations": stations_processed}
 
 
-# ---------------------------------------------------------------------------
-# Walk-forward validation
-# ---------------------------------------------------------------------------
-
+# Walk-forward валидации
 def compute_validation_metrics(session: Session) -> dict:
     """
     Walk-forward validation: hold-out последних 4 квартала на каждой линии.

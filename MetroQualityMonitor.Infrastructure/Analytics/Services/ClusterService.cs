@@ -10,7 +10,8 @@ namespace MetroQualityMonitor.Infrastructure.Analytics.Services;
 /// </summary>
 public class ClusterService(MetroQualityMonitorDbContext db) : IClusterService
 {
-    public async Task<IReadOnlyCollection<StationWithClusterDto>> GetAllWithClustersAsync(CancellationToken ct = default)
+    /// <inheritdoc/>
+    public async Task<IReadOnlyCollection<StationWithClusterDto>> GetAllWithClustersAsync(CancellationToken cancellationToken = default)
     {
         var stations = await db.Stations
             .AsNoTracking()
@@ -20,7 +21,7 @@ public class ClusterService(MetroQualityMonitorDbContext db) : IClusterService
                 s.Name,
                 Lines = s.Lines!.Select(l => l.Name).ToList(),
             })
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         var stationIds = stations.Select(s => s.Id).ToList();
 
@@ -36,7 +37,7 @@ public class ClusterService(MetroQualityMonitorDbContext db) : IClusterService
                 v.LatitudeWgs84,
                 v.LongitudeWgs84,
             })
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         var coordMap = vestibules
             .GroupBy(v => v.StationId)
@@ -48,7 +49,7 @@ public class ClusterService(MetroQualityMonitorDbContext db) : IClusterService
             .Where(a => !a.IsAcknowledged)
             .GroupBy(a => a.StationId)
             .Select(g => new { StationId = g.Key, Count = g.Count() })
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
         var anomalyMap = anomalyCounts.ToDictionary(a => a.StationId, a => a.Count);
 
         var repairCounts = await db.EscalatorRepairs
@@ -56,14 +57,14 @@ public class ClusterService(MetroQualityMonitorDbContext db) : IClusterService
             .Where(r => !r.IsDeleted && r.Vestibule != null && r.Vestibule.StationId != null)
             .GroupBy(r => r.Vestibule!.StationId!.Value)
             .Select(g => new { StationId = g.Key, Count = g.Count() })
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
         var repairMap = repairCounts.ToDictionary(r => r.StationId, r => r.Count);
 
         // Загружаем кластеры, выбираем последний по станции в памяти
         var allClusters = await db.StationClusters
             .AsNoTracking()
             .Select(c => new { c.StationId, c.ClusterLabel, c.ClusterId, c.ComputedAtDateTimeUtc })
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         var clusterMap = allClusters
             .GroupBy(c => c.StationId)

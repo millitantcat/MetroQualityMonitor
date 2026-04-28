@@ -10,14 +10,15 @@ namespace MetroQualityMonitor.Infrastructure.Analytics.Services;
 /// </summary>
 public class LineService(MetroQualityMonitorDbContext db) : ILineService
 {
-    public async Task<IReadOnlyCollection<LineDto>> GetAllAsync(CancellationToken ct = default)
+    /// <inheritdoc/>
+    public async Task<IReadOnlyCollection<LineDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var latestPeriod = await db.PassengerFlowRecords
             .AsNoTracking()
             .OrderByDescending(r => r.Year)
             .ThenByDescending(r => r.Quarter)
             .Select(r => new { r.Year, r.Quarter })
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(cancellationToken);
 
         var lines = await db.Lines
             .AsNoTracking()
@@ -40,7 +41,7 @@ public class LineService(MetroQualityMonitorDbContext db) : ILineService
                         .Sum(r => r.OutgoingPassengers),
             })
             .OrderBy(l => l.Name)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         return lines.Select(l => new LineDto
         {
@@ -54,13 +55,14 @@ public class LineService(MetroQualityMonitorDbContext db) : ILineService
         }).ToList();
     }
 
-    public async Task<LineDetailsDto?> GetByIdAsync(short id, CancellationToken ct = default)
+    /// <inheritdoc/>
+    public async Task<LineDetailsDto?> GetByIdAsync(short id, CancellationToken cancellationToken = default)
     {
         var line = await db.Lines
             .AsNoTracking()
             .Where(l => l.Id == id)
             .Select(l => new { l.Id, l.Name, StationCount = l.Stations!.Count })
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (line is null)
             return null;
@@ -71,21 +73,21 @@ public class LineService(MetroQualityMonitorDbContext db) : ILineService
             .OrderByDescending(r => r.Year)
             .ThenByDescending(r => r.Quarter)
             .Select(r => new { r.Year, r.Quarter })
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(cancellationToken);
 
         long totalIn = 0, totalOut = 0;
         if (latestPeriod is not null)
         {
             totalIn  = await db.PassengerFlowRecords
                 .Where(r => r.LineId == id && r.Year == latestPeriod.Year && r.Quarter == latestPeriod.Quarter)
-                .SumAsync(r => (long)r.IncomingPassengers, ct);
+                .SumAsync(r => (long)r.IncomingPassengers, cancellationToken);
             totalOut = await db.PassengerFlowRecords
                 .Where(r => r.LineId == id && r.Year == latestPeriod.Year && r.Quarter == latestPeriod.Quarter)
-                .SumAsync(r => (long)r.OutgoingPassengers, ct);
+                .SumAsync(r => (long)r.OutgoingPassengers, cancellationToken);
         }
 
         var vestibuleCount = await db.Vestibules
-            .CountAsync(v => v.LineId == id, ct);
+            .CountAsync(v => v.LineId == id, cancellationToken);
 
         return new LineDetailsDto
         {
@@ -99,8 +101,9 @@ public class LineService(MetroQualityMonitorDbContext db) : ILineService
             LatestYear     = latestPeriod?.Year,
         };
     }
-
-    public async Task<IReadOnlyCollection<StationLiteDto>> GetStationsAsync(short lineId, CancellationToken ct = default)
+    
+    /// <inheritdoc/>
+    public async Task<IReadOnlyCollection<StationLiteDto>> GetStationsAsync(short lineId, CancellationToken cancellationToken = default)
     {
         var stations = await db.Lines
             .AsNoTracking()
@@ -113,7 +116,7 @@ public class LineService(MetroQualityMonitorDbContext db) : ILineService
                 Lines = s.Lines!.Select(ln => ln.Name).ToList(),
             })
             .OrderBy(s => s.Name)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         return stations.Select(s => new StationLiteDto
         {
@@ -123,8 +126,9 @@ public class LineService(MetroQualityMonitorDbContext db) : ILineService
         }).ToList();
     }
 
+    /// <inheritdoc/>
     public async Task<IReadOnlyCollection<FlowRecordDto>> GetFlowAsync(
-        short lineId, int? fromYear, int? toYear, CancellationToken ct = default)
+        short lineId, int? fromYear, int? toYear, CancellationToken cancellationToken = default)
     {
         var query = db.PassengerFlowRecords
             .AsNoTracking()
@@ -146,7 +150,7 @@ public class LineService(MetroQualityMonitorDbContext db) : ILineService
             })
             .OrderBy(r => r.Year)
             .ThenBy(r => r.Quarter)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         return aggregated;
     }

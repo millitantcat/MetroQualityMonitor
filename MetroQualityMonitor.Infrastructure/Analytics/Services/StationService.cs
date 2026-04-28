@@ -11,7 +11,8 @@ namespace MetroQualityMonitor.Infrastructure.Analytics.Services;
 /// </summary>
 public class StationService(MetroQualityMonitorDbContext db) : IStationService
 {
-    public async Task<IReadOnlyCollection<StationLiteDto>> GetAllAsync(CancellationToken ct = default)
+    /// <inheritdoc/>
+    public async Task<IReadOnlyCollection<StationLiteDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var stations = await db.Stations
             .AsNoTracking()
@@ -22,7 +23,7 @@ public class StationService(MetroQualityMonitorDbContext db) : IStationService
                 Lines = s.Lines!.Select(l => l.Name).ToList(),
             })
             .OrderBy(s => s.Name)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         return stations.Select(s => new StationLiteDto
         {
@@ -32,7 +33,8 @@ public class StationService(MetroQualityMonitorDbContext db) : IStationService
         }).ToList();
     }
 
-    public async Task<StationDetailsDto?> GetByIdAsync(short id, CancellationToken ct = default)
+    /// <inheritdoc/>
+    public async Task<StationDetailsDto?> GetByIdAsync(short id, CancellationToken cancellationToken = default)
     {
         var station = await db.Stations
             .AsNoTracking()
@@ -43,7 +45,7 @@ public class StationService(MetroQualityMonitorDbContext db) : IStationService
                 s.Name,
                 Lines = s.Lines!.Select(l => l.Name).ToList(),
             })
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (station is null)
             return null;
@@ -53,12 +55,12 @@ public class StationService(MetroQualityMonitorDbContext db) : IStationService
             .Where(c => c.StationId == id)
             .OrderByDescending(c => c.ComputedAtDateTimeUtc)
             .Select(c => c.ClusterLabel)
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(cancellationToken);
 
-        var vestibuleCount = await db.Vestibules.CountAsync(v => v.StationId == id, ct);
+        var vestibuleCount = await db.Vestibules.CountAsync(v => v.StationId == id, cancellationToken);
 
         var activeRepairCount = await db.EscalatorRepairs
-            .CountAsync(r => r.Vestibule!.StationId == id && !r.IsDeleted, ct);
+            .CountAsync(r => r.Vestibule!.StationId == id && !r.IsDeleted, cancellationToken);
 
         var latestPeriod = await db.PassengerFlowRecords
             .AsNoTracking()
@@ -66,7 +68,7 @@ public class StationService(MetroQualityMonitorDbContext db) : IStationService
             .OrderByDescending(r => r.Year)
             .ThenByDescending(r => r.Quarter)
             .Select(r => new { r.Year, r.Quarter, r.IncomingPassengers, r.OutgoingPassengers })
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(cancellationToken);
 
         double? yoyGrowth = null;
         if (latestPeriod is not null)
@@ -77,7 +79,7 @@ public class StationService(MetroQualityMonitorDbContext db) : IStationService
                             && r.Year == latestPeriod.Year - 1
                             && r.Quarter == latestPeriod.Quarter)
                 .Select(r => r.IncomingPassengers)
-                .FirstOrDefaultAsync(ct);
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (prevYearRecord > 0)
                 yoyGrowth = (double)(latestPeriod.IncomingPassengers - prevYearRecord) / prevYearRecord;
@@ -97,8 +99,9 @@ public class StationService(MetroQualityMonitorDbContext db) : IStationService
         };
     }
 
+    /// <inheritdoc/>
     public async Task<IReadOnlyCollection<FlowRecordDto>> GetFlowAsync(
-        short id, int? fromYear, int? toYear, CancellationToken ct = default)
+        short id, int? fromYear, int? toYear, CancellationToken cancellationToken = default)
     {
         var query = db.PassengerFlowRecords
             .AsNoTracking()
@@ -119,10 +122,11 @@ public class StationService(MetroQualityMonitorDbContext db) : IStationService
                 IncomingPassengers = r.IncomingPassengers,
                 OutgoingPassengers = r.OutgoingPassengers,
             })
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyCollection<ForecastDto>> GetForecastAsync(short id, CancellationToken ct = default)
+    /// <inheritdoc/>
+    public async Task<IReadOnlyCollection<ForecastDto>> GetForecastAsync(short id, CancellationToken cancellationToken = default)
     {
         return await db.Forecasts
             .AsNoTracking()
@@ -143,12 +147,13 @@ public class StationService(MetroQualityMonitorDbContext db) : IStationService
                 ModelName                = f.ModelName,
                 ModelVersion             = f.ModelVersion,
             })
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<HourlyHeatmapDto?> GetHourlyAsync(short id, DayTypes dayType, CancellationToken ct = default)
+    /// <inheritdoc/>
+    public async Task<HourlyHeatmapDto?> GetHourlyAsync(short id, DayTypes dayType, CancellationToken cancellationToken = default)
     {
-        var exists = await db.Stations.AnyAsync(s => s.Id == id, ct);
+        var exists = await db.Stations.AnyAsync(s => s.Id == id, cancellationToken);
         if (!exists)
             return null;
 
@@ -157,7 +162,7 @@ public class StationService(MetroQualityMonitorDbContext db) : IStationService
             .Where(c => c.StationId == id)
             .OrderByDescending(c => c.ComputedAtDateTimeUtc)
             .Select(c => c.ClusterLabel)
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(cancellationToken);
 
         var category = ParseCategory(clusterLabel);
 
@@ -165,7 +170,7 @@ public class StationService(MetroQualityMonitorDbContext db) : IStationService
             .AsNoTracking()
             .Where(p => p.StationCategory == category && p.DayType == dayType)
             .OrderBy(p => p.Hour)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         if (profiles.Count == 0)
             return null;
@@ -176,7 +181,7 @@ public class StationService(MetroQualityMonitorDbContext db) : IStationService
             .OrderByDescending(r => r.Year)
             .ThenByDescending(r => r.Quarter)
             .Select(r => new { r.IncomingPassengers, r.OutgoingPassengers })
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(cancellationToken);
 
         var factor = WeekdayFactor(dayType);
 
@@ -208,7 +213,8 @@ public class StationService(MetroQualityMonitorDbContext db) : IStationService
         };
     }
 
-    public async Task<IReadOnlyCollection<AnomalyDto>> GetAnomaliesAsync(short id, CancellationToken ct = default)
+    /// <inheritdoc/>
+    public async Task<IReadOnlyCollection<AnomalyDto>> GetAnomaliesAsync(short id, CancellationToken cancellationToken = default)
     {
         return await db.Anomalies
             .AsNoTracking()
@@ -231,9 +237,13 @@ public class StationService(MetroQualityMonitorDbContext db) : IStationService
                 AcknowledgedDateTimeUtc = a.AcknowledgedDateTimeUtc,
                 CreateDateTimeUtc      = a.CreateDateTimeUtc,
             })
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Преобразует строковую метку кластера из БД в перечисление <see cref="StationCategories"/>.
+    /// Неизвестная или отсутствующая метка маппируется в <see cref="StationCategories.Mixed"/>.
+    /// </summary>
     private static StationCategories ParseCategory(string? label) =>
         label switch
         {
@@ -243,6 +253,10 @@ public class StationService(MetroQualityMonitorDbContext db) : IStationService
             _             => StationCategories.Mixed,
         };
 
+    /// <summary>
+    /// Возвращает коэффициент загруженности дня относительно среднего будня (=1.0).
+    /// Используется в формуле деагрегации квартального потока в часовой.
+    /// </summary>
     private static double WeekdayFactor(DayTypes dayType) =>
         dayType switch
         {
